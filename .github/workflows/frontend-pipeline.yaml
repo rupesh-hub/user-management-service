@@ -59,7 +59,7 @@ jobs:
           npm run lint || echo "No linting errors found, would add linting rules in a real project"
 
   build:
-    name: build
+    name: Build
     runs-on: ubuntu-latest
     needs: [ test, lint ]
     steps:
@@ -84,7 +84,7 @@ jobs:
           npm run build || echo "No build artifacts found, would add build steps in a real project"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifcat@v4
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: frontend/dist/browser
@@ -106,18 +106,21 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: /frontend/dist/browser
+          path: frontend/dist/browser
 
-      - name: Setup docker buildx
+      - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
 
-      - name: Extract metadata fro docker
+      - name: Extract metadata for Docker
         id: metadata
-        uses: actions/metadata-action@v5
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -125,7 +128,7 @@ jobs:
             type=ref,event=branch
             latest
 
-      - name: Build docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: frontend
@@ -133,7 +136,6 @@ jobs:
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          load: true
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -144,15 +146,6 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-
-      - name: Push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: frontend
-          file: docker/frontend/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Set image tag output
         id: set_output
@@ -195,7 +188,3 @@ jobs:
           git add deployment/frontend-deployment.yaml
           git commit -m "Update Kubernetes deployment with new image tag: ${{ needs.docker.outputs.image_tag }} [skip ci]" || echo "No changes to commit"
           git push
-
-
-
-    
