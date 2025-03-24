@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-management-system
+  labels:
+    app: user-management-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-management-system  # Must match template.metadata.labels
+  template:
+    metadata:
+      labels:
+        app: user-management-system
+    spec:
+      containers:
+        - name: user-management-service
+          image: ghcr.io/rupesh-hub/user-management-service:sha-378546d6573db70d46f12e84d53fefe1aa3747f9@sha256:ee42bb74dd268bd0b2f84ddd5c3d8cabff7c7e66035b52891de1f67659563487
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8181
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: "512Mi"
+            requests:
+              cpu: "0.2"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health  # Better health check endpoint
+              port: 8181
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health  # Better health check endpoint
+              port: 8181
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+      imagePullSecrets:
+        - name: github-container-registry

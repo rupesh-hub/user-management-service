@@ -1,0 +1,16 @@
+appVersion: v1
+kind: Service
+metadata:
+  name: user-management-system
+  labels:
+    app: user-management-system
+
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8181
+      targetPort: 8181
+      protocol: TCP
+      name: http
+  selector:
+    app: user-management-system

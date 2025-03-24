@@ -130,3 +130,85 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+  update-deployment:
+    name: Update Kubernetes Deployment
+    runs-on: ubuntu-latest
+    needs: [ build-image ]
+    if: github.ref == 'ref/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Git Config
+        run: |
+          git config user.name 'GitHub Actions'
+          git config user.email "actions@github.com"
+
+      - name: Install yq (YAML processor)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yq
+
+      - name: Validate Kubernetes YAML
+        run: |
+          if ! kubectl apply --dry-run=client -f deployment/backend-deployment.yaml; then
+            echo "Error: Invalid Kubernetes YAML!"
+            exit 1
+          fi
+
+      - name: Update Kubernetes deployment file with yq
+        env:
+          IMAGE_TAG: sha-${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          REGISTRY: ghcr.io
+          CONTAINER_NAME: "user-management-service"  # ← Update this to match your container name
+        run: |
+          # Define the new image
+          NEW_IMAGE="${REGISTRY}/${GITHUB_REPOSITORY}:${IMAGE_TAG}"
+
+          # Create backup
+          cp deployment/backend-deployment.yaml deployment/backend-deployment.yaml.bak
+
+          # Update SPECIFIC container image using yq
+          yq eval -i "
+            .spec.template.spec.containers[] |= 
+            (select(.name == \"${CONTAINER_NAME}\").image = \"${NEW_IMAGE}\")
+          " deployment/backend-deployment.yaml
+
+          # Verify change
+          echo "Updated image to:"
+          yq eval '.spec.template.spec.containers[].image' deployment/backend-deployment.yaml
+
+      - name: Verify updated YAML
+        run: |
+          # Check syntax
+          yq eval -e '.' deployment/backend-deployment.yaml > /dev/null || {
+            echo "Error: YAML became invalid after modification!"
+            exit 1
+          }
+
+          # Restore backup if verification fails
+          if ! kubectl apply --dry-run=client -f deployment/backend-deployment.yaml; then
+            cp deployment/backend-deployment.yaml.bak deployment/backend-deployment.yaml
+            echo "Error: Updated deployment failed validation!"
+            exit 1
+          fi
+
+      - name: Commit and push changes
+        run: |
+          if git diff --quiet --exit-code -- deployment/backend-deployment.yaml; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add deployment/backend-deployment.yaml
+          git commit -m "CI: Update ${CONTAINER_NAME} image to ${IMAGE_TAG} [skip ci]"
+          git push origin HEAD:main
+        env:
+          IMAGE_TAG: sha-${{ github.sha }}
+          CONTAINER_NAME: "user-management-service"  # ← Must match above
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
