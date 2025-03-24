@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: backend
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
     spec:
       containers:
         - name: backend
@@ -29,4 +31,3 @@ spec:
               memory: "256Mi"
       imagePullSecrets:
         - name: github-container-registry
-          
