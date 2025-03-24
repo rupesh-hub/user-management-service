@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'deployment/backend-deployment.yaml'
+      - 'deployment/**'
       - 'README.md'
 
 jobs:
@@ -160,11 +160,11 @@ jobs:
           # Create backup
           cp deployment/backend-deployment.yaml deployment/backend-deployment.yaml.bak
 
-          # Update the image using yq (fixed command)
-          yq eval -i "
+          # Update the image using yq (fixed syntax)
+          yq -i -y '
             .spec.template.spec.containers[] |= 
-            (select(.name == \"$CONTAINER_NAME\").image = \"$NEW_IMAGE\"
-          " deployment/backend-deployment.yaml
+            select(.name == env(CONTAINER_NAME)).image = env(NEW_IMAGE)
+          ' deployment/backend-deployment.yaml
 
           # Verify the change
           echo "Updated image to: $NEW_IMAGE"
