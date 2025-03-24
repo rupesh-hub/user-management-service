@@ -29,17 +29,15 @@ spec:
               memory: "256Mi"
           livenessProbe:
             httpGet:
-              path: /actuator/health  # Better health check endpoint
-              port: 8181
+              path: /
+              port: 80
             initialDelaySeconds: 30
             periodSeconds: 10
-            failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /actuator/health  # Better health check endpoint
-              port: 8181
+              path: /
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
-            failureThreshold: 3
       imagePullSecrets:
         - name: github-container-registry
