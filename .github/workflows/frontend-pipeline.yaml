@@ -157,7 +157,7 @@ jobs:
           output: 'trivy-results.txt'
 
       - name: Upload Trivy scan results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # Changed from v3 to v4
         if: always()
         with:
           name: trivy-scan-results
@@ -212,5 +212,5 @@ jobs:
       - name: Commit and push changes
         run: |
           git add deployment/frontend-deployment.yaml
-          git commit -m "Update kubernetes deployment with new image tag: ${{ needs.docker.outputs.image_tag }} [skip ci]" || echo "No changes to commit"
+          git commit -m "Update Kubernetes deployment with new image tag: ${{ needs.docker.outputs.image_tag }} [skip ci]" || echo "No changes to commit"
           git push
