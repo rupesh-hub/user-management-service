@@ -344,11 +344,3 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 
 
-kubectl create secret docker-registry github-container-registry \
---docker-server=ghcr.io \
---docker-username=rupesh-hub \
---docker-password=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 \
---docker-email=dulalrupesh77@gmail.com \
--n argocd
-
-
