@@ -96,7 +96,7 @@ jobs:
     needs: [ build ]
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}
+      IMAGE_NAME: ${{ github.repository }}-frontend
     outputs:
       image_tag: ${{ steps.set_output.outputs.image_tag }}
     steps:
@@ -196,11 +196,11 @@ jobs:
       - name: Update Kubernetes deployment file
         env:
           IMAGE_TAG: sha-${{ github.sha }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          IMAGE_NAME: ${{ github.repository }}-frontend
           REGISTRY: ghcr.io
         run: |
           # Define the new image with tag
-          NEW_IMAGE="${REGISTRY}/${GITHUB_REPOSITORY}:${IMAGE_TAG}"
+          NEW_IMAGE="${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
           
           # Update the deployment file directly
           sed -i "s|image: ${REGISTRY}/.*|image: ${NEW_IMAGE}|g" deployment/frontend-deployment.yaml
