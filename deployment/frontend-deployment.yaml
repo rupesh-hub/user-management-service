@@ -8,24 +8,36 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: frontend  # Must match template.metadata.labels
+      app: frontend
   template:
     metadata:
       labels:
         app: frontend
     spec:
       containers:
-        - name: frontend
-          image: ghcr.io/rupesh-hub/user-management-service-frontend:sha-ee3f9e45ee55993bca76233460618e2c8dcd729d
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8181
-          resources:
-            limits:
-              cpu: "0.5"
-              memory: "512Mi"
-            requests:
-              cpu: "0.2"
-              memory: "256Mi"
+      - name: frontend
+        image: ghcr.io/rupesh-hub/user-management-service-frontend:sha-ee3f9e45ee55993bca76233460618e2c8dcd729d
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "512Mi"
+          requests:
+            cpu: "0.2"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
       imagePullSecrets:
-        - name: github-container-registry
+      - name: github-container-registry

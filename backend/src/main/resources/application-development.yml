@@ -4,4 +4,4 @@ logging:
 
 application:
   cors:
-    origins: http://localhost:4200,http://localhost:8080,http://13.48.55.48:8080,http:13.48.55.48:9191
+    origins: http://localhost:4200,http://localhost:8080,http://13.48.55.48:8080,http:13.48.55.48:9191,http://http://51.120.241.59:8888,http://http://51.120.241.59:8080
