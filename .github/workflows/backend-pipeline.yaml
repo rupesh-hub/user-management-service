@@ -2,10 +2,12 @@ name: backend pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
     paths-ignore:
       - 'deployment/backend-deployment.yaml'
       - 'README.md'
+
 jobs:
   compile:
     runs-on: ubuntu-latest
