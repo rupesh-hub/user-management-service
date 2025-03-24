@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-management-system
+  name: user-management-service
   labels:
-    app: user-management-system
+    app: user-management-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: user-management-system  # Must match template.metadata.labels
+      app: user-management-service  # Must match template.metadata.labels
   template:
     metadata:
       labels:
-        app: user-management-system
+        app: user-management-service
     spec:
       containers:
         - name: user-management-service

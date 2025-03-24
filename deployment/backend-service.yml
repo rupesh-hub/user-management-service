@@ -1,9 +1,9 @@
 appVersion: v1
 kind: Service
 metadata:
-  name: user-management-system
+  name: user-management-service
   labels:
-    app: user-management-system
+    app: user-management-service
 
 spec:
   type: ClusterIP
@@ -13,4 +13,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: user-management-system
+    app: user-management-service
