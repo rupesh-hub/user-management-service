@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-management-service
+  name: backend
   labels:
-    app: user-management-service
+    app: backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: user-management-service  # Must match template.metadata.labels
+      app: backend
   template:
     metadata:
       labels:
-        app: user-management-service
+        app: backend
     spec:
       containers:
-        - name: user-management-service
+        - name: backend
           image: ghcr.io/rupesh-hub/user-management-service:sha-2a2707b4c39c5aa9fbeba6188a4fcc11b28b6736
           imagePullPolicy: Always
           ports:
@@ -27,19 +27,5 @@ spec:
             requests:
               cpu: "0.2"
               memory: "256Mi"
-          # livenessProbe:
-          #   httpGet:
-          #     path: /actuator/health  # Better health check endpoint
-          #     port: 8181
-          #   initialDelaySeconds: 30
-          #   periodSeconds: 10
-          #   failureThreshold: 3
-          # readinessProbe:
-          #   httpGet:
-          #     path: /actuator/health  # Better health check endpoint
-          #     port: 8181
-          #   initialDelaySeconds: 5
-          #   periodSeconds: 5
-          #   failureThreshold: 3
       imagePullSecrets:
         - name: github-container-registry
