@@ -4,7 +4,6 @@ metadata:
   name: backend
   labels:
     app: backend
-
 spec:
   type: ClusterIP
   ports:
