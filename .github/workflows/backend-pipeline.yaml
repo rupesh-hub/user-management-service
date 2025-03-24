@@ -149,31 +149,36 @@ jobs:
           git config user.name 'GitHub Actions'
           git config user.email "actions@github.com"
 
-      - name: Install yq (YAML processor)
+      - name: Install yq
         run: sudo apt-get update && sudo apt-get install -y yq
 
       - name: Update container image
         env:
           NEW_IMAGE: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
-          CONTAINER_NAME: user-management-service  # ← Make sure this matches container name
+          CONTAINER_NAME: user-management-service  # Make sure this matches your container name
         run: |
           # Create backup
           cp deployment/backend-deployment.yaml deployment/backend-deployment.yaml.bak
 
-          # Update ONLY the specified container's image
+          # Update the image using yq (fixed command)
           yq eval -i "
             .spec.template.spec.containers[] |= 
-            (select(.name == \"$CONTAINER_NAME\").image = \"$NEW_IMAGE\")
+            (select(.name == \"$CONTAINER_NAME\").image = \"$NEW_IMAGE\"
           " deployment/backend-deployment.yaml
 
           # Verify the change
-          echo "Updated to image: $NEW_IMAGE"
-          grep -A 1 "name: $CONTAINER_NAME" deployment/backend-deployment.yaml
+          echo "Updated image to: $NEW_IMAGE"
+          yq eval '.spec.template.spec.containers[].image' deployment/backend-deployment.yaml
 
       - name: Commit and push changes
         run: |
+          if git diff --quiet --exit-code -- deployment/backend-deployment.yaml; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
           git add deployment/backend-deployment.yaml
-          git commit -m "CI: Update $CONTAINER_NAME image [skip ci]" || echo "No changes to commit"
+          git commit -m "CI: Update $CONTAINER_NAME image [skip ci]"
           git push origin HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
