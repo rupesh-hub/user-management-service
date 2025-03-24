@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ghcr.io/rupesh-hub/devsecops-demo:sha-ac00ade579857c0ee367468eb127b6275343ad8b
+        image: ghcr.io/rupesh-hub/user-management-service-frontend:sha-ee3f9e45ee55993bca76233460618e2c8dcd729d
         # Image will be automatically updated by CI/CD pipeline
         imagePullPolicy: Always
         ports:
