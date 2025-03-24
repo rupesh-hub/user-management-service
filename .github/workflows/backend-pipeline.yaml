@@ -161,14 +161,14 @@ jobs:
           cp deployment/backend-deployment.yaml deployment/backend-deployment.yaml.bak
 
           # Update the image using yq (fixed syntax)
-          yq -i -y '
+          yq -i '
             .spec.template.spec.containers[] |= 
-            select(.name == env(CONTAINER_NAME)).image = env(NEW_IMAGE)
+            select(.name == strenv(CONTAINER_NAME)).image = strenv(NEW_IMAGE)
           ' deployment/backend-deployment.yaml
 
           # Verify the change
           echo "Updated image to: $NEW_IMAGE"
-          yq eval '.spec.template.spec.containers[].image' deployment/backend-deployment.yaml
+          yq '.spec.template.spec.containers[].image' deployment/backend-deployment.yaml
 
       - name: Commit and push changes
         run: |
