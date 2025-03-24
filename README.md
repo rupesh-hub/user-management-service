@@ -1,28 +1,56 @@
-# Complete devsecops demo (3 tier application)
-Steps:
-1. Create backend application
-2. Create frontend application
-3. Create Dockerfile for frontend and backend
-4. Create CI pipeline for frontend and backend
+# **Complete CI/CD Pathway for Development**
 
-# Backend CI/CD Pipeline Steps
+This CI/CD pipeline covers the following steps for both **Frontend** and **Backend** applications in a 3-tier system. The process includes building, testing, packaging, creating Docker images, and updating Kubernetes deployments.
 
-## 1. Trigger Conditions
+---
+
+## **1. Development Phase (Local Development)**
+
+### Backend:
+- **Technologies**: Java (Spring Boot, Maven)
+- **Development**:
+    - Developers create Java code for the backend.
+    - Backend application is version-controlled in Git.
+    - Developer runs local unit tests and ensures the application runs correctly.
+
+### Frontend:
+- **Technologies**: React.js (Node.js, npm)
+- **Development**:
+    - Developers create components, services, and views for the frontend.
+    - Developers test frontend features locally using `npm run test`.
+    - Local linting with `npm run lint` and ensure the build process runs with `npm run build`.
+
+---
+
+## **2. GitHub Repository Setup**
+
+### Backend:
+- The backend code is stored in a GitHub repository with the standard structure.
+
+### Frontend:
+- The frontend code is stored in a separate GitHub repository or subdirectory within the main repository.
+
+---
+
+## **3. Backend CI/CD Pipeline**
+
+### 1. **Trigger Conditions**
 The pipeline runs on a push to the **main** branch, except for the following cases:
-
 - **Ignores** changes to:
     - Files in `deployment/**`
     - `README.md`
     - Frontend-related workflow files (`.github/workflows/frontend-*.yaml`)
     - Frontend Docker files (`docker/frontend`)
 
-## 2. Jobs
+---
 
-### Job 1: Compile
+### 2. **Jobs**
+
+#### Job 1: Compile
 **Name**: Compile  
 **Runs on**: `ubuntu-latest`
 
-#### Steps:
+##### Steps:
 1. **Checkout Repository**
     - Uses `actions/checkout@v4` to fetch the code.
 
@@ -34,11 +62,11 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 2: Tests
+#### Job 2: Tests
 **Name**: Test  
 **Runs on**: `ubuntu-latest`
 
-#### Steps:
+##### Steps:
 1. **Checkout Repository**
     - Same as above.
 
@@ -50,12 +78,12 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 3: Build
+#### Job 3: Build
 **Name**: Build  
 **Runs on**: `ubuntu-latest`  
 **Depends on**: `compile` and `test` jobs (runs only if they succeed)
 
-#### Steps:
+##### Steps:
 1. **Checkout Repository**
     - Same as above.
 
@@ -67,19 +95,19 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 4: Build Docker Image
+#### Job 4: Build Docker Image
 **Name**: Build Docker Image  
 **Runs on**: `ubuntu-latest`  
 **Depends on**: `build` job
 
-#### Environment Variables:
+##### Environment Variables:
 - `REGISTRY`: `ghcr.io` (GitHub Container Registry)
 - `IMAGE_NAME`: GitHub repository name
 
-#### Outputs:
+##### Outputs:
 - `image_tag`: Docker image tag generated in the metadata step.
 
-#### Steps:
+##### Steps:
 1. **Checkout Repository**
     - Same as above.
 
@@ -110,7 +138,7 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 5: Update Kubernetes Deployment
+#### Job 5: Update Kubernetes Deployment
 **Name**: Update Kubernetes Deployment  
 **Runs on**: `ubuntu-latest`  
 **Depends on**: `build-image` job  
@@ -118,7 +146,7 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 - Push to the **main** branch.
 - Event is a push (not a pull request, etc.).
 
-#### Steps:
+##### Steps:
 1. **Checkout Code**
     - Uses `actions/checkout@v4` with `GH_TOKEN` to allow pushing changes back.
 
@@ -135,7 +163,7 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-## Summary of Key Actions
+### 3. **Summary of Key Actions**
 - **Compile**: Ensures the code compiles.
 - **Test**: Runs unit tests.
 - **Build**: Packages the JAR.
@@ -144,34 +172,36 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-## Artifacts Generated
+### 4. **Artifacts Generated**
 - Docker image in GitHub Container Registry (e.g., `ghcr.io/<org>/<repo>:sha-<hash>`).
 - Updated `backend-deployment.yaml` with the new image tag.
 
 ---
 
-## Security Checks
+### 5. **Security Checks**
 - **Trivy scan** for critical/high vulnerabilities in the Docker image.
 
 ---
-# Frontend CI/CD Pipeline Steps
 
-## 1. Trigger Conditions
+## **4. Frontend CI/CD Pipeline**
+
+### 1. **Trigger Conditions**
 The pipeline runs on a push to the **main** branch, except for the following cases:
-
 - **Ignores** changes to:
     - Files in `deployment/**`
     - `docker/backend`
     - Frontend-related workflow files (`.github/workflows/backend*`)
     - `README.md`
 
-## 2. Jobs
+---
 
-### Job 1: Unit Test
+### 2. **Jobs**
+
+#### Job 1: Unit Test
 **Name**: Unit test  
 **Runs on**: `ubuntu-latest`
 
-#### Steps:
+##### Steps:
 1. **Checkout code**
     - Uses `actions/checkout@v4` to fetch the code.
 
@@ -187,11 +217,11 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 2: Static Code Analysis
+#### Job 2: Static Code Analysis
 **Name**: Static code analysis (Linting)  
 **Runs on**: `ubuntu-latest`
 
-#### Steps:
+##### Steps:
 1. **Checkout code**
     - Same as above.
 
@@ -206,12 +236,12 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 3: Build
+#### Job 3: Build
 **Name**: Build  
 **Runs on**: `ubuntu-latest`  
 **Needs**: `test`, `lint` jobs (runs only if they succeed)
 
-#### Steps:
+##### Steps:
 1. **Checkout code**
     - Same as above.
 
@@ -229,19 +259,19 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 4: Docker Build and Push
+#### Job 4: Docker Build and Push
 **Name**: Docker build and push  
 **Runs on**: `ubuntu-latest`  
 **Needs**: `build` job
 
-#### Environment Variables:
+##### Environment Variables:
 - `REGISTRY`: `ghcr.io` (GitHub Container Registry)
 - `IMAGE_NAME`: `<github.repository>-frontend`
 
-#### Outputs:
+##### Outputs:
 - `image_tag`: The Docker image tag generated in the metadata step.
 
-#### Steps:
+##### Steps:
 1. **Checkout code**
     - Same as above.
 
@@ -274,7 +304,7 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-### Job 5: Update Kubernetes Deployment
+#### Job 5: Update Kubernetes Deployment
 **Name**: Update Kubernetes Deployment  
 **Runs on**: `ubuntu-latest`  
 **Needs**: `docker` job  
@@ -282,7 +312,7 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 - Push to the **main** branch.
 - Event is a push (not a pull request, etc.).
 
-#### Steps:
+##### Steps:
 1. **Checkout code**
     - Uses `actions/checkout@v4` with `GH_TOKEN` to allow pushing changes back.
 
@@ -299,7 +329,7 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-## Summary of Key Actions
+### 3. **Summary of Key Actions**
 - **Unit Test**: Runs unit tests for the frontend.
 - **Lint**: Runs static code analysis using ESLint.
 - **Build**: Builds the frontend project and uploads the build artifacts.
@@ -308,7 +338,7 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ---
 
-## Artifacts Generated
+### 4. **Artifacts Generated**
 - Docker image in GitHub Container Registry (e.g., `ghcr.io/<org>/<repo>-frontend:sha-<hash>`).
 - Updated `frontend-deployment.yaml` with the new image tag.
 
