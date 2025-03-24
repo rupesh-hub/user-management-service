@@ -1,0 +1,8 @@
+<div class="container">
+  <h1 *ngIf="message">
+    {{ message?.message }}
+    <span>
+      {{ message?.timestamp | date: 'medium' }}
+    </span>
+  </h1>
+</div>

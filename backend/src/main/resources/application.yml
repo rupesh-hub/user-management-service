@@ -1,0 +1,11 @@
+spring:
+  profiles:
+    active: development
+
+  application:
+    name: ums-backend
+
+server:
+  port: 8181
+  servlet:
+    context-path: /api/v1.0.0

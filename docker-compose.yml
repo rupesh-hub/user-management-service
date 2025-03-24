@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  backend:
+    container_name: backend
+    image: rupesh1997/backend:1.0.0
+    ports:
+      - "8181:8181"
+    networks:
+      - ums-networks
+    restart: always
+
+  frontend:
+    container_name: frontend
+    image: rupesh1997/frontend:1.0.0
+    ports:
+      - "8080:80"
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - ums-networks
+
+networks:
+  ums-networks:
+    driver: bridge
