@@ -132,11 +132,21 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
   update-deployment:
-    name: Update Kubernetes Deployment
+    name: Update Deployment
     runs-on: ubuntu-latest
     needs: [ build-image ]
-    if: github.ref == 'ref/heads/main' && github.event_name == 'push'
+    if: ${{ always() && github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+
     steps:
+      - name: Debug Context
+        run: |
+          echo "--- DEBUG INFO ---"
+          echo "Branch: ${{ github.ref }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "SHA: ${{ github.sha }}"
+          echo "Build-image status: ${{ needs.build-image.result }}"
+          echo "------------------"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
