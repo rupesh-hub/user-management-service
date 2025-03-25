@@ -340,4 +340,4 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 
 ### 4. **Artifacts Generated**
 - Docker image in GitHub Container Registry (e.g., `ghcr.io/<org>/<repo>-frontend:sha-<hash>`).
-- Updated `frontend-deployment.yaml` with the new image tag. 
+- Updated `frontend-deployment.yaml` with the new image tag.
