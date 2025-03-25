@@ -9,13 +9,17 @@ RUN mvn clean install -DskipTests
 #2. Runtime state
 FROM amazoncorretto:17
 WORKDIR /app
-COPY --from=build /build/target/ums-backend-*.jar /app/
+COPY --from=build /build/target/user-management-service-backend-*.jar /app/
 EXPOSE 8181
 
 ARG APP_VERSION=1.0.0
 ARG PROFILE=development
+ARG DB_URL=jdbc:mysql://mysql:3306/user_db
 
 ENV JAR_VERSION=${APP_VERSION}
 ENV ACTIVE_PROFILE=${PROFILE}
+ENV DATABASE_URL=${DB_URL}
 
-CMD java -jar -Dspring.profiles.active=${ACTIVE_PROFILE} ums-backend-${JAR_VERSION}.jar
+CMD java -jar -Dspring.profiles.active=${ACTIVE_PROFILE} -Dspring.datasource.url=${DATABASE_URL} user-management-service-backend-${JAR_VERSION}.jar
+
+# docker build -t rupesh1997/user-management-service-backend:1.0.0 -f ../docker/backend/Dockerfile .

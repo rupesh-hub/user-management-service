@@ -1,26 +1,62 @@
 version: "3.8"
 
 services:
-  backend:
-    container_name: backend
-    image: rupesh1997/backend:1.0.0
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_db
     ports:
-      - "8181:8181"
-    networks:
-      - ums-networks
+      - "3306:3306"
     restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - java-project
+    healthcheck:
+      test: [ "CMD","mysqladmin","ping","-h","localhost","-uroot","-proot" ]
+      interval: 2s
+      timeout: 20s
+      retries: 10
+      start_period: 10s
 
-  frontend:
-    container_name: frontend
-    image: rupesh1997/frontend:1.0.0
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
     ports:
-      - "8080:80"
-    restart: always
-    depends_on:
-      - backend
+      - "1080:1080"
+      - "1025:1025"
     networks:
-      - ums-networks
+      - java-project
+
+#  backend:
+#    container_name: backend
+#    image: rupesh1997/user-management-service:1.0.0
+#    ports:
+#      - "8181:8181"
+#    networks:
+#      - java-project
+#    restart: always
+#    depends_on:
+#      - mysql
+#      - maildev
+#
+#  frontend:
+#    container_name: frontend
+#    image: rupesh1997/user-management-service-frontend:1.0.0
+#    ports:
+#      - "8080:80"
+#    networks:
+#      - java-project
+#    restart: always
+#    depends_on:
+#      - backend
+
+volumes:
+  mysql-data:
+    driver: local
 
 networks:
-  ums-networks:
+  java-project:
     driver: bridge

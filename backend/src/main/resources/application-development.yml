@@ -1,7 +1,69 @@
-logging:
-  level:
-    root: info
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_db
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+
+  mvc:
+    static-path-pattern: /uploads/**
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 50MB
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  web:
+    resources:
+      static-locations: file:${file.upload.directory}
+
+  mail:
+    host: localhost
+    port: 1025
+    username: ali
+    password: ali
+    properties:
+      mail:
+        smtp:
+          trust: "*"
+        auth: true
+        starttls:
+          enabled: true
+        connectiontimeout: 5000
+        timeout: 3000
+        writetimeout: 5000
+
+file:
+  upload:
+    directory: uploads
 
 application:
   cors:
     origins: http://localhost:4200,http://localhost:8080,http://13.48.55.48:8080,http:13.48.55.48:9191,http://http://51.120.241.59:8888,http://http://51.120.241.59:8080
+  security:
+    token:
+      secret_key: TSHKAHSHSGSTBNSGJKSWUYGWBJBTUHHSGDSGVDVSGHXWYTFGYUHJHCVXSHCFYGSDBSBVCHGSFCYTWGJBCNBVS
+      expiration: 86400000000
+
+  email:
+    activation_url: http://localhost:4200/activate-account
+    reset-password-url: http://localhost:4200/reset-password
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type: trace

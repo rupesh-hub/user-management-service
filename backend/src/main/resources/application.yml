@@ -3,7 +3,7 @@ spring:
     active: development
 
   application:
-    name: ums-backend
+    name: user-management-service-backend
 
 server:
   port: 8181
