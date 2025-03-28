@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ghcr.io/rupesh-hub/user-management-service-frontend:sha-e371b84f7a9aad2cd663bdc73e4f0c1a16cdf241
+        image: ghcr.io/rupesh-hub/user-management-service-frontend:sha-9eec5745d6ebda284f381b188ed5e0e74db5cb9a
         imagePullPolicy: Always
         ports:
         - containerPort: 80
