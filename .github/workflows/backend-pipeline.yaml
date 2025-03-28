@@ -78,7 +78,7 @@ jobs:
     needs: [ build ]
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{github.repository}}
+      IMAGE_NAME: ${{ github.repository }}-backend
     outputs:
       image_tag: ${{ steps.metadata.outputs.tags }}
     name: Build docker image
@@ -153,11 +153,11 @@ jobs:
       - name: Update Kubernetes deployment file
         env:
           IMAGE_TAG: sha-${{ github.sha }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          IMAGE_NAME: ${{ github.repository }}-backend
           REGISTRY: ghcr.io
         run: |
           # Define the new image with tag
-          NEW_IMAGE="${REGISTRY}/${GITHUB_REPOSITORY}:${IMAGE_TAG}"
+          NEW_IMAGE="${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
 
           # Update the deployment file directly
           sed -i "s|image: ${REGISTRY}/.*|image: ${NEW_IMAGE}|g" deployment/backend-deployment.yaml
@@ -177,12 +177,11 @@ jobs:
           # Apply stashed changes if any
           git stash pop || echo "No stashed changes to apply"
 
-          # Add frontend deployment file changes (for frontend part)
-          git add deployment/frontend-deployment.yaml
+          # Add backend deployment file changes
+          git add deployment/backend-deployment.yaml
 
           # Commit only if there are changes
-          git diff --cached --quiet || git commit -m "Update frontend image to ${IMAGE_TAG} [skip ci]"
+          git diff --cached --quiet || git commit -m "Update backend image to ${IMAGE_TAG} [skip ci]"
 
           # Push changes to the remote repository
           git push origin main
-      
