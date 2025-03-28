@@ -341,3 +341,132 @@ The pipeline runs on a push to the **main** branch, except for the following cas
 ### 4. **Artifacts Generated**
 - Docker image in GitHub Container Registry (e.g., `ghcr.io/<org>/<repo>-frontend:sha-<hash>`).
 - Updated `frontend-deployment.yaml` with the new image tag.
+
+
+---
+# Continuous Deployment Guide
+
+## 1. Create an Instance in AWS/Azure
+Set up a virtual machine in AWS or Azure.
+
+## 2. Install Necessary Software and Plugins
+```sh
+  sudo apt-get update && sudo apt-get upgrade -y
+```
+
+## 3. Install Docker
+```sh
+  sudo apt-get install docker.io -y
+  sudo usermod -aG docker $USER && newgrp docker
+```
+
+## 4. Install KIND Cluster & Kubectl
+### Install KIND (For AMD64 / x86_64)
+```sh 
+  curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
+  chmod +x ./kind
+  sudo mv ./kind /usr/local/bin/kind
+```
+### Install Kubectl
+```sh
+   VERSION="v1.30.0"
+   URL="https://dl.k8s.io/release/${VERSION}/bin/linux/amd64/kubectl"
+   curl -LO "$URL"
+   chmod +x kubectl
+   sudo mv kubectl /usr/local/bin/
+   kubectl version --client
+```
+
+## 5. Setup Kubernetes Cluster Using KIND
+Create a config file **kind-cluster-config.yaml**:
+```yaml
+   kind: Cluster
+   apiVersion: kind.x-k8s.io/v1alpha4
+   
+   nodes:
+   - role: control-plane
+     image: kindest/node:v1.32.0
+   - role: worker
+     image: kindest/node:v1.32.0
+   - role: worker
+     image: kindest/node:v1.32.0
+```
+
+Create the cluster:
+```sh
+  kind create cluster --config kind-cluster-config.yaml --name kubernetes
+```
+Verify the cluster:
+```sh
+   kubectl get nodes
+   kubectl cluster-info
+```
+
+## 6. Install ArgoCD
+### Create ArgoCD Namespace
+```sh
+   kubectl create namespace argocd
+```
+### Apply ArgoCD Installation Manifest
+```sh
+   kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+### Port Forward ArgoCD API Server
+```sh
+   kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+### Get ArgoCD Login Credentials
+```sh
+   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+```
+
+## 7. Create a Kubernetes Secret for GitHub Container Registry (GHCR)
+Before deploying applications, create a secret to pull images from GHCR:
+```sh
+   kubectl create secret docker-registry github-container-registry \
+     --docker-server=ghcr.io \
+     --docker-username=<USERNAME> \
+     --docker-password=<PERSONAL_ACCESS_TOKEN> \
+     --docker-email=<EMAIL>
+```
+### Why is this required?
+Kubernetes needs authentication to pull private container images from GitHub Container Registry (GHCR).
+
+## 8. Deploy Application to ArgoCD KIND Cluster
+Create an application in ArgoCD UI or use YAML manifests.
+
+## 9. Access Application
+Port forward the deployed service:
+```sh
+  kubectl port-forward svc/<APPLICATION_SERVICE_NAME> -n <NAMESPACE> 8081:80
+```
+
+## 10. Verification & Debugging Commands
+### Check Cluster Nodes
+```sh
+  kubectl get nodes
+  kubectl describe nodes
+```
+### Check Running Pods
+```sh
+  kubectl get pods -n <NAMESPACE>
+  kubectl describe pod <POD_NAME> -n <NAMESPACE>
+```
+### View Logs
+```sh
+  kubectl logs -f <POD_NAME> -n <NAMESPACE>
+```
+### Execute a Shell in a Pod (Example: MySQL)
+```sh
+  kubectl exec -it <MYSQL_POD_NAME> -n <NAMESPACE> -- /bin/sh
+```
+
+## 11. Cleanup (Optional)
+To delete the cluster:
+```sh
+  kind delete cluster --name kubernetes
+```
+
+---
+This guide provides **step-by-step instructions** to set up a Kubernetes cluster using KIND, deploy ArgoCD, and run applications efficiently. 🚀
+
