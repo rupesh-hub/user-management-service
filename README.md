@@ -430,7 +430,6 @@ jobs:
           # Push changes to the remote repository
           git push origin main
 
--------
 ## Frontend Pipeline
 name: frontend pipeline
 
@@ -642,5 +641,283 @@ jobs:
           # Push changes to the remote repository
           git push origin main
 
+
+# Kubernetes Resources for MySQL, Backend, Frontend, and Persistent Storage
+
+This document explains various Kubernetes resources required to deploy a MySQL database, frontend, backend, and persistent storage in a Kubernetes environment. These configurations include ConfigMaps, Secrets, PersistentVolumes, PersistentVolumeClaims, Deployments, and Services.
+
+---
+
+## 1. **ConfigMap and Secret**
+
+### **ConfigMap:**
+A `ConfigMap` stores non-sensitive configuration data in key-value pairs. The data in the `ConfigMap` can be accessed by your containers as environment variables or mounted as files.
+
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: configmap
+  namespace: default
+data:
+  MYSQL_DATABASE: "user_db"  # Name of the database
+  MYSQL_ROOT_USERNAME: "root"  # Root username for MySQL
+  MYSQL_DATASOURCE_URL: "jdbc:mysql://mysql:3306/user_db"  # MySQL JDBC URL
+Explanation:
+This ConfigMap defines the configuration data for the MySQL database, including the database name, root username, and the JDBC connection URL. These values will be used by containers that need to connect to the MySQL database.
+
+Secret:
+A Secret is used to store sensitive information, such as passwords, which need to be kept secure. The values are base64 encoded to prevent them from being visible in plain text.
+
+yaml
+Copy
+Edit
+kind: Secret
+apiVersion: v1
+metadata:
+  name: mysql-secret
+  namespace: default
+data:
+  MYSQL_ROOT_PASSWORD: cm9vdA==  # Base64-encoded password for root user
+Explanation:
+This Secret stores the root password for MySQL in base64 encoded format. It is more secure than storing plain text passwords in environment variables or configuration files.
+
+2. PersistentVolume and PersistentVolumeClaim
+These resources manage the storage for your MySQL database, ensuring that the data persists even if the pod is deleted or recreated.
+
+PersistentVolume (PV):
+A PersistentVolume (PV) represents a piece of storage in your cluster that has been provisioned by an administrator. It is independent of the pod lifecycle.
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: local-pv
+  labels:
+    app: local
+spec:
+  capacity:
+    storage: 1Gi  # The amount of storage allocated
+  accessModes:
+    - ReadWriteOnce  # Allows only one pod to access the volume at a time
+  persistentVolumeReclaimPolicy: Retain  # Retain the volume even after PVC is deleted
+  storageClassName: local-storage  # Class name for storage
+  hostPath:
+    path: /mnt/data  # The local path on the node's file system
+Explanation:
+The PersistentVolume represents a local disk storage (hostPath) mounted from the physical node. It has a storage capacity of 1Gi, and the data will be retained even if the PersistentVolumeClaim (PVC) is deleted.
+
+PersistentVolumeClaim (PVC):
+A PersistentVolumeClaim (PVC) is a request for storage by a user. It specifies the amount of storage and access mode required, and Kubernetes will try to bind it to an appropriate PersistentVolume.
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: local-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce  # Only one pod can mount the volume
+  resources:
+    requests:
+      storage: 1Gi  # The amount of storage requested
+  storageClassName: local-storage  # Ensure the PVC binds to a volume with this class
+Explanation:
+This PersistentVolumeClaim requests 1Gi of storage with the ReadWriteOnce access mode, which means only one pod can use it at a time. It will bind to a PersistentVolume that matches the criteria.
+
+3. StatefulSet for MySQL
+A StatefulSet is a type of Kubernetes deployment used for managing stateful applications, such as databases. It ensures that each pod gets a stable and unique identity and persistent storage.
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+  namespace: default
+spec:
+  serviceName: mysql
+  replicas: 1  # Only one replica of MySQL
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0  # MySQL container image
+          ports:
+            - containerPort: 3306  # Port for MySQL service
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: MYSQL_ROOT_PASSWORD
+                  name: mysql-secret  # Secret reference for root password
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: MYSQL_DATABASE
+                  name: configmap  # ConfigMap reference for database name
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-data  # Mounting persistent volume for data storage
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: local-pvc  # PVC reference for storage
+Explanation:
+This StatefulSet defines a MySQL database instance running with one replica. It uses the MYSQL_ROOT_PASSWORD from the Secret and the MYSQL_DATABASE from the ConfigMap. The data for MySQL is stored in a PersistentVolume mounted to /var/lib/mysql.
+
+4. Service for MySQL
+A Service defines a stable network endpoint for accessing your MySQL database.
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql
+  namespace: default
+spec:
+  ports:
+    - protocol: TCP
+      port: 3306  # Exposing MySQL port
+      targetPort: 3306  # Target port on the MySQL container
+  selector:
+    app: mysql  # The service selects pods with the label "app: mysql"
+  type: ClusterIP  # The service is only accessible within the cluster
+Explanation:
+This Service allows access to MySQL using port 3306 within the Kubernetes cluster. It selects the pods that have the label app: mysql.
+
+5. Deployment for Backend
+The Deployment resource defines the backend application and ensures the desired number of replicas are running. The backend connects to the MySQL service.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 1  # Only one replica of the backend service
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/rupesh-hub/user-management-service-backend:sha-bbc5d2a46ef86644fdeba9b687379bf3ff51bea1  # Image for backend
+          imagePullPolicy: Always  # Always pull the latest image
+          ports:
+            - containerPort: 8181  # Port for backend service
+          resources:
+            limits:
+              cpu: "0.5"  # CPU limit
+              memory: "512Mi"  # Memory limit
+            requests:
+              cpu: "0.2"  # CPU request
+              memory: "256Mi"  # Memory request
+      imagePullSecrets:
+      - name: github-container-registry  # GitHub registry credentials for pulling images
+Explanation:
+This Deployment configures the backend application, setting resource requests and limits for CPU and memory. The backend will connect to the MySQL database and expose a service on port 8181.
+
+6. Service for Backend
+A Service defines the stable endpoint for the backend application.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  type: ClusterIP  # The service is only accessible inside the cluster
+  ports:
+  - port: 8181  # Port exposed by the backend service
+    targetPort: 8181  # The port on the container
+    protocol: TCP
+    name: http  # HTTP service name
+  selector:
+    app: backend  # The service selects pods with the label "app: backend"
+Explanation:
+This Service allows the backend to be accessed within the Kubernetes cluster on port 8181.
+
+7. Deployment for Frontend
+The Frontend deployment configures the user interface of the application.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1  # Only one replica of the frontend service
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: ghcr.io/rupesh-hub/user-management-service-frontend:sha-c29c4e346444da28c6d3211ec46390b78acb4731  # Frontend container image
+        imagePullPolicy: Always  # Always pull the latest image
+        ports:
+        - containerPort: 80  # Exposing port 80 for the frontend
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "512Mi"
+          requests:
+            cpu: "0.2"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      imagePullSecrets:
+      - name: github-container-registry  # GitHub registry credentials for pulling images
+Explanation:
+This Deployment configures the frontend application, which exposes port 80. It also includes a liveness probe to check if the frontend is running and a readiness probe to ensure it's ready to handle traffic.
+
+8. Service for Frontend
+A Service to expose the frontend to the rest of the application.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  type: ClusterIP  # The service is only accessible inside the cluster
+  ports:
+  - port: 80  # Port exposed by the frontend service
+    targetPort: 80  # The port on the container
+    protocol: TCP
+    name: http  # HTTP service name
+  selector:
+    app: frontend  # The service selects pods with the label "app: frontend"
+Explanation:
+This Service allows the frontend to be accessed within the Kubernetes cluster on port 80.
 
 
