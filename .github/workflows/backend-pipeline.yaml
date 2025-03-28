@@ -168,11 +168,21 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          # Fetch remote changes to prevent conflicts
+          # Stash any local changes (if any)
+          git stash --include-untracked
+
+          # Fetch remote changes and rebase the local branch to avoid conflicts
           git pull origin main --rebase
 
-          git add deployment/backend-deployment.yaml
-          git commit -m "Update kubernetes deployment with new image tag: ${{ needs.docker.outputs.image_tag }} [skip ci]" || echo "No changes to commit"
+          # Apply stashed changes if any
+          git stash pop || echo "No stashed changes to apply"
 
-          # Push the changes
+          # Add frontend deployment file changes (for frontend part)
+          git add deployment/frontend-deployment.yaml
+
+          # Commit only if there are changes
+          git diff --cached --quiet || git commit -m "Update frontend image to ${IMAGE_TAG} [skip ci]"
+
+          # Push changes to the remote repository
           git push origin main
+      
