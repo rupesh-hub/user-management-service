@@ -63,7 +63,7 @@ jobs:
         run: |
           cd frontend
           echo "Linting successfully"
-#          npm run lint
+  #          npm run lint
 
   build:
     name: Build
@@ -190,6 +190,21 @@ jobs:
 
       - name: Commit and push changes
         run: |
+          # Stash any local changes (if any)
+          git stash --include-untracked
+          
+          # Fetch remote changes and rebase the local branch to avoid conflicts
+          git pull origin main --rebase
+          
+          # Apply stashed changes if any
+          git stash pop || echo "No stashed changes to apply"
+          
+          # Add frontend deployment file changes
           git add deployment/frontend-deployment.yaml
+          
+          # Commit only if there are changes
           git diff --cached --quiet || git commit -m "Update frontend image to ${IMAGE_TAG} [skip ci]"
-          git push
+          
+          # Push changes to the remote repository
+          git push origin main
+
