@@ -165,4 +165,15 @@ export class AuthenticationService {
     });
   };
 
+  public authenticatedUser = () => {
+    const user = {
+      name: localStorage.getItem('name'),
+      email: localStorage.getItem('email'),
+      username: localStorage.getItem('username'),
+      profile: localStorage.getItem('profile'),
+    }
+
+    return user;
+  }
+
 }

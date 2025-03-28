@@ -1,0 +1,82 @@
+<section>
+  <h2 class="text-xl font-semibold text-gray-900 mb-6">Roles & Permissions</h2>
+
+  <!-- Roles -->
+  <div class="mb-8">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Assigned Roles</h3>
+    <div class="space-y-4">
+      <div *ngFor="let role of roles" class="bg-white border border-gray-200 rounded p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-base font-medium text-gray-900">{{ role.name }}</h4>
+            <p class="mt-1 text-sm text-gray-600">{{ role.description }}</p>
+          </div>
+          <span *ngIf="role.isPrimary"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                      Primary
+                    </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permissions -->
+  <div>
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Permissions</h3>
+
+    <!-- Permission Categories -->
+    <div class="mb-4 flex flex-wrap gap-2">
+      <button
+        class="px-3 py-1.5 rounded text-sm font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+        All
+      </button>
+      <button
+        class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+        Projects
+      </button>
+      <button
+        class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+        Users
+      </button>
+      <button
+        class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+        Reports
+      </button>
+      <button
+        class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+        Admin
+      </button>
+    </div>
+
+    <!-- Permissions List -->
+    <div class="space-y-4">
+      <div *ngFor="let permission of permissions"
+           class="bg-white border border-gray-200 rounded p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center">
+              <h4 class="text-base font-medium text-gray-900">{{ permission.name }}</h4>
+              <span
+                class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          {{ permission.category }}
+                        </span>
+            </div>
+            <p class="mt-1 text-sm text-gray-600">{{ permission.description }}</p>
+          </div>
+          <div class="flex items-center">
+                      <span
+                        class="mr-2 text-sm font-medium text-gray-700">{{ permission.granted ? 'Granted' : 'Not Granted' }}</span>
+            <button (click)="updatePermission(permission.id, !permission.granted)"
+                    class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    [ngClass]="permission.granted ? 'bg-indigo-600' : 'bg-gray-200'">
+              <span class="sr-only">Toggle permission</span>
+              <span aria-hidden="true"
+                    class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                    [ngClass]="permission.granted ? 'translate-x-5' : 'translate-x-0'"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

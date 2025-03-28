@@ -1,0 +1,128 @@
+<section>
+  <h2 class="text-xl font-semibold text-gray-900 mb-6">Activity & Login History</h2>
+
+  <!-- Activity Filters -->
+  <div class="flex flex-wrap gap-2 mb-6">
+    <button
+      class="px-3 py-1.5 rounded text-sm font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+      All Activity
+    </button>
+    <button
+      class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+      Logins
+    </button>
+    <button
+      class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+      Profile Updates
+    </button>
+    <button
+      class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+      Tasks
+    </button>
+    <button
+      class="px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
+      Security
+    </button>
+  </div>
+
+  <!-- Activity Timeline -->
+  <div class="relative">
+    <!-- Timeline Line -->
+    <div class="absolute top-0 left-4 bottom-0 w-0.5 bg-gray-200"></div>
+
+    <!-- Timeline Items -->
+    <div class="space-y-6">
+      <div *ngFor="let activity of activities" class="relative flex items-start">
+        <!-- Timeline Icon -->
+        <div
+          class="flex items-center justify-center w-9 h-9 rounded-full bg-white border-2 border-gray-200 z-10">
+          <!-- Login Icon -->
+          <svg *ngIf="activity.type === 'login'" xmlns="http://www.w3.org/2000/svg"
+               class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+          </svg>
+
+          <!-- Profile Update Icon -->
+          <svg *ngIf="activity.type === 'profile_update'" xmlns="http://www.w3.org/2000/svg"
+               class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+
+          <!-- Task Completed Icon -->
+          <svg *ngIf="activity.type === 'task_completed'" xmlns="http://www.w3.org/2000/svg"
+               class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+
+          <!-- Role Change Icon -->
+          <svg *ngIf="activity.type === 'role_change'" xmlns="http://www.w3.org/2000/svg"
+               class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+
+          <!-- Security Change Icon -->
+          <svg *ngIf="activity.type === 'security_change'" xmlns="http://www.w3.org/2000/svg"
+               class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+
+          <!-- Other Icon -->
+          <svg *ngIf="activity.type === 'other'" xmlns="http://www.w3.org/2000/svg"
+               class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+
+        <!-- Activity Content -->
+        <div class="ml-4 min-w-0 flex-1 py-0.5">
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-gray-900">{{ activity.description }}</p>
+            <span class="text-xs text-gray-500">{{ formatDateTime(activity.date) }}</span>
+          </div>
+          <div *ngIf="activity.details" class="mt-1 text-sm text-gray-600">
+            <!-- Login Details -->
+            <div *ngIf="activity.type === 'login' && activity.details.location" class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              {{ activity.details.location }} ({{ activity.details.ip }})
+            </div>
+
+            <!-- Profile Update Details -->
+            <div *ngIf="activity.type === 'profile_update' && activity.details.fields"
+                 class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+              </svg>
+              Updated fields: {{ activity.details.fields.join(', ') }}
+            </div>
+
+            <!-- Task Details -->
+            <div *ngIf="activity.type === 'task_completed' && activity.details.project"
+                 class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              Project: {{ activity.details.project }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>

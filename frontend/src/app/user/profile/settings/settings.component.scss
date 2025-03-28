@@ -1,0 +1,11 @@
+.toggle-label {
+  @apply block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200;
+}
+
+input:checked + .toggle-label {
+  @apply bg-indigo-600;
+}
+
+input:checked + .toggle-label span {
+  @apply transform translate-x-4;
+}

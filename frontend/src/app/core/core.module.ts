@@ -12,45 +12,17 @@ import {UnauthorizedComponent} from '../shared/unauthorized/unauthorized.compone
 import {RegisterComponent} from './authentication/register/register.component';
 import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {ReactiveFormsModule} from '@angular/forms';
+import { CoreComponent } from './core.component';
 
 const routes: Routes = [
-  {
-    path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
-  },
-  {
-    path: 'login',
-    component: LoginComponent
-  },
-  {
-    path: 'register',
-    component: RegisterComponent,
-  },
-  {
-    path: 'validate-token',
-    component: ConfirmationTokenValidatorComponent
-  },
-  {
-    path: 'forget-password',
-    component: ForgetPasswordComponent,
-  },
-  {
-    path: 'reset-password',
-    component: ResetPasswordComponent,
-  },
-  {
-    path: 'unauthorized',
-    component: UnauthorizedComponent
-  },
-  {
-    path: 'error',
-    component: ErrorComponent
-  },
-  {
-    path: '**',
-    redirectTo: '/error'
-  }
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'validate-token', component: ConfirmationTokenValidatorComponent },
+  { path: 'forget-password', component: ForgetPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'unauthorized', component: UnauthorizedComponent },
+  { path: 'error', component: ErrorComponent },
 ];
 
 @NgModule({
@@ -59,7 +31,8 @@ const routes: Routes = [
     ConfirmationTokenValidatorComponent,
     ForgetPasswordComponent,
     ResetPasswordComponent,
-    RegisterComponent
+    RegisterComponent,
+    CoreComponent
   ],
   imports: [
     CommonModule,

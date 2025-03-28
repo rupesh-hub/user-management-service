@@ -1,8 +1,8 @@
-import { CanActivateFn, Router } from '@angular/router';
-import { inject } from '@angular/core';
-import { AuthenticationService } from '../services/authentication.service';
-import { JwtTokenValidatorService } from '../services/jwt-token-validator.service';
-import { map, take } from 'rxjs/operators';
+import {CanActivateFn, Router} from '@angular/router';
+import {inject} from '@angular/core';
+import {AuthenticationService} from '../services/authentication.service';
+import {JwtTokenValidatorService} from '../services/jwt-token-validator.service';
+import {map, take} from 'rxjs/operators';
 
 export const authenticationGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthenticationService);
@@ -10,38 +10,30 @@ export const authenticationGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   return authService.isAuthenticated$.pipe(
-    take(1), // Ensure the guard completes after one emission
+    take(1),
     map((isAuthenticated) => {
       const url = state.url;
-      const expectedRoles = route.data['roles'] as string[] || []; // Get required roles from route data
+      const expectedRoles = route.data?.['roles'] as string[] || [];
 
-      // 1. Handle unauthenticated users trying to access protected routes
-      if (!isAuthenticated && isProtectedRoute(url)) {
-        router.navigateByUrl('/login');
-        return false;
+      if (!isAuthenticated) {
+        if (isProtectedRoute(url)) {
+          return router.createUrlTree(['/login']);
+        }
+        return true;
       }
 
-      // 2. Handle authenticated users
-      if (isAuthenticated) {
-        const userRoles = tokenService.getAuthorities();
+      const userRoles = tokenService.getAuthorities();
 
-        // 2a. Redirect users with specific roles (if needed)
-        if (userRoles.includes('admin') && !url.startsWith('/admin')) {
-          router.navigateByUrl('/admin/dashboard');
-          return false;
-        } else if (userRoles.includes('user') && !url.startsWith('/users')) {
-          router.navigateByUrl('/users/profile');
-          return false;
-        }
-
-        // 2b. Check route permissions (if route has required roles)
-        if (expectedRoles.length > 0 && !expectedRoles.some(role => userRoles.includes(role))) {
-          router.navigateByUrl('/unauthorized');
-          return false;
-        }
+      // Check if user has any of the expected roles
+      if (expectedRoles.length > 0 && !expectedRoles.some(role => userRoles.includes(role))) {
+        return router.createUrlTree(['/unauthorized']);
       }
 
-      // 3. Allow access in all other cases
+      // ONLY BLOCK USERS FROM ADMIN ROUTES (Admins can access both)
+      if (userRoles.includes('user') && url.startsWith('/admin')) {
+        return router.createUrlTree(['/users/profile']); // ✅ Blocks user from admin routes
+      }
+
       return true;
     })
   );

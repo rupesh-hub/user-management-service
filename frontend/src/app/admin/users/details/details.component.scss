@@ -1,0 +1,11 @@
+.btn-delete{
+  @apply border border-red-300 text-red-600 font-serif bg-red-50/50;
+}
+
+.btn-warn {
+  @apply border border-yellow-300 text-yellow-600 font-serif bg-yellow-50/50;
+}
+
+.btn-unblock{
+  @apply border border-green-300 text-green-600 font-serif bg-green-50/50;
+}

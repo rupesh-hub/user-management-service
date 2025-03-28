@@ -1,0 +1,24 @@
+/* Toggle Switch Styles */
+.toggle-label {
+  @apply transition-colors duration-200 ease-in-out;
+}
+
+input:checked + .toggle-label {
+  @apply bg-indigo-600;
+}
+
+.toggle-label::after {
+  content: "";
+  @apply absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full shadow transition-transform duration-200 ease-in-out;
+}
+
+input:checked + .toggle-label::after {
+  @apply transform translate-x-4;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .profile-header-bg {
+    height: 120px;
+  }
+}

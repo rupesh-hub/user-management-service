@@ -1,0 +1,542 @@
+<div class="bg-gray-50 min-h-screen font-serif">
+  <div class="container mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Account Settings</h1>
+
+    <!-- Settings Navigation -->
+    <div class="flex flex-wrap mb-6 bg-white rounded shadow overflow-hidden">
+      <button
+        *ngFor="let tab of ['profile', 'security', 'notifications', 'privacy', 'appearance', 'language', 'sessions']"
+        (click)="setActiveTab(tab)"
+        class="px-4 py-3 text-sm font-medium transition-colors"
+        [ngClass]="activeTab === tab ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'"
+      >
+        {{ tab | titlecase }}
+      </button>
+    </div>
+
+    <!-- Profile Settings -->
+    <div *ngIf="activeTab === 'profile'" class="bg-white rounded shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Profile Information</h2>
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+        <div class="mb-6">
+          <div class="flex items-center mb-4">
+            <div class="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden mr-4">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9gpAC0zXcIB4wSdCNZSoBY-e-pJOPqEOIKQ&s" alt="Profile picture" class="w-full h-full object-cover"/>
+            </div>
+            <div>
+              <button type="button"
+                      class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors">
+                Change Photo
+              </button>
+              <p class="text-xs text-gray-500 mt-1">JPG, GIF or PNG. 1MB max.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+            <input
+              type="text"
+              id="firstName"
+              formControlName="firstName"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+            <div *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched"
+                 class="text-red-500 text-xs mt-1">
+              First name is required
+            </div>
+          </div>
+
+          <div>
+            <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+            <input
+              type="text"
+              id="lastName"
+              formControlName="lastName"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+            <div *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched"
+                 class="text-red-500 text-xs mt-1">
+              Last name is required
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+            <div *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched"
+                 class="text-red-500 text-xs mt-1">
+              Please enter a valid email address
+            </div>
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <input
+              type="tel"
+              id="phone"
+              formControlName="phone"
+              placeholder="(555) 123-4567"
+              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+            <div *ngIf="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched"
+                 class="text-red-500 text-xs mt-1">
+              Please enter a valid phone number format: (555) 123-4567
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            [disabled]="profileForm.invalid"
+            class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Security Settings -->
+    <div *ngIf="activeTab === 'security'" class="bg-white rounded shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Security Settings</h2>
+
+      <!-- Password Change -->
+      <div class="mb-8">
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Change Password</h3>
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+          <div class="space-y-4 mb-4">
+            <div>
+              <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+              <input
+                type="password"
+                id="currentPassword"
+                formControlName="currentPassword"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+              <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched"
+                   class="text-red-500 text-xs mt-1">
+                Current password is required
+              </div>
+            </div>
+
+            <div>
+              <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input
+                type="password"
+                id="newPassword"
+                formControlName="newPassword"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+              <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
+                   class="text-red-500 text-xs mt-1">
+                Password must be at least 8 characters
+              </div>
+            </div>
+
+            <div>
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm New
+                Password</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+              <div *ngIf="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched"
+                   class="text-red-500 text-xs mt-1">
+                Please confirm your new password
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              [disabled]="passwordForm.invalid"
+              class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              Update Password
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Two-Factor Authentication -->
+      <div class="border-t border-gray-200 pt-6">
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Two-Factor Authentication</h3>
+        <p class="text-gray-600 mb-4">Add an extra layer of security to your account by enabling two-factor
+          authentication.</p>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="font-medium text-gray-800">Two-factor authentication is disabled</h4>
+            <p class="text-sm text-gray-500">Protect your account with an authentication app</p>
+          </div>
+          <button type="button"
+                  class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors">
+            Enable
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div *ngIf="activeTab === 'notifications'" class="bg-white rounded shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Notification Preferences</h2>
+
+      <div class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-gray-800">Email Notifications</h3>
+            <p class="text-sm text-gray-500">Receive notifications via email</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="notificationSettings.emailNotifications" class="sr-only peer">
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-gray-800">Push Notifications</h3>
+            <p class="text-sm text-gray-500">Receive notifications on your device</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="notificationSettings.pushNotifications" class="sr-only peer">
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-gray-800">SMS Notifications</h3>
+            <p class="text-sm text-gray-500">Receive notifications via text message</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="notificationSettings.smsNotifications" class="sr-only peer">
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-gray-800">Marketing Emails</h3>
+            <p class="text-sm text-gray-500">Receive emails about new features and offers</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="notificationSettings.marketingEmails" class="sr-only peer">
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          type="button"
+          (click)="saveNotificationSettings()"
+          class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors"
+        >
+          Save Preferences
+        </button>
+      </div>
+    </div>
+
+    <!-- Privacy Settings -->
+    <div *ngIf="activeTab === 'privacy'" class="bg-white rounded shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Privacy Settings</h2>
+
+      <div class="space-y-6">
+        <div>
+          <h3 class="font-medium text-gray-800 mb-2">Profile Visibility</h3>
+          <p class="text-sm text-gray-500 mb-3">Control who can see your profile information</p>
+
+          <div class="space-y-2">
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="public"
+                name="profileVisibility"
+                value="public"
+                [(ngModel)]="privacySettings.profileVisibility"
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+              >
+              <label for="public" class="ml-2 block text-sm text-gray-700">Public (Anyone can view)</label>
+            </div>
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="contacts"
+                name="profileVisibility"
+                value="contacts"
+                [(ngModel)]="privacySettings.profileVisibility"
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+              >
+              <label for="contacts" class="ml-2 block text-sm text-gray-700">Contacts Only</label>
+            </div>
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="private"
+                name="profileVisibility"
+                value="private"
+                [(ngModel)]="privacySettings.profileVisibility"
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+              >
+              <label for="private" class="ml-2 block text-sm text-gray-700">Private (Only you)</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-gray-800">Show Online Status</h3>
+            <p class="text-sm text-gray-500">Allow others to see when you're online</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="privacySettings.showOnlineStatus" class="sr-only peer">
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-gray-800">Show Activity Status</h3>
+            <p class="text-sm text-gray-500">Allow others to see your recent activity</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="privacySettings.showActivity" class="sr-only peer">
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          type="button"
+          (click)="savePrivacySettings()"
+          class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors"
+        >
+          Save Privacy Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Appearance Settings -->
+    <div *ngIf="activeTab === 'appearance'" class="bg-white rounded shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Appearance Settings</h2>
+
+      <div class="space-y-6">
+        <div>
+          <h3 class="font-medium text-gray-800 mb-2">Theme</h3>
+          <p class="text-sm text-gray-500 mb-3">Choose your preferred theme</p>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div
+              (click)="appearanceSettings.theme = 'light'"
+              class="cursor-pointer rounded p-3 border-2 flex flex-col items-center"
+              [ngClass]="appearanceSettings.theme === 'light' ? 'border-indigo-600' : 'border-gray-200'"
+            >
+              <div class="w-full h-20 bg-white border border-gray-200 rounded mb-2"></div>
+              <span class="text-sm font-medium">Light</span>
+            </div>
+
+            <div
+              (click)="appearanceSettings.theme = 'dark'"
+              class="cursor-pointer rounded p-3 border-2 flex flex-col items-center"
+              [ngClass]="appearanceSettings.theme === 'dark' ? 'border-indigo-600' : 'border-gray-200'"
+            >
+              <div class="w-full h-20 bg-gray-800 border border-gray-700 rounded mb-2"></div>
+              <span class="text-sm font-medium">Dark</span>
+            </div>
+
+            <div
+              (click)="appearanceSettings.theme = 'system'"
+              class="cursor-pointer rounded p-3 border-2 flex flex-col items-center"
+              [ngClass]="appearanceSettings.theme === 'system' ? 'border-indigo-600' : 'border-gray-200'"
+            >
+              <div
+                class="w-full h-20 bg-gradient-to-r from-white to-gray-800 border border-gray-200 rounded mb-2"></div>
+              <span class="text-sm font-medium">System</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-medium text-gray-800 mb-2">Font Size</h3>
+          <p class="text-sm text-gray-500 mb-3">Adjust the text size</p>
+
+          <div class="flex items-center space-x-4">
+            <button
+              (click)="appearanceSettings.fontSize = 'small'"
+              class="px-3 py-1 rounded text-sm"
+              [ngClass]="appearanceSettings.fontSize === 'small' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'"
+            >
+              Small
+            </button>
+            <button
+              (click)="appearanceSettings.fontSize = 'medium'"
+              class="px-3 py-1 rounded text-sm"
+              [ngClass]="appearanceSettings.fontSize === 'medium' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'"
+            >
+              Medium
+            </button>
+            <button
+              (click)="appearanceSettings.fontSize = 'large'"
+              class="px-3 py-1 rounded text-sm"
+              [ngClass]="appearanceSettings.fontSize === 'large' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'"
+            >
+              Large
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-medium text-gray-800">Reduced Motion</h3>
+            <p class="text-sm text-gray-500">Minimize animations throughout the interface</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [(ngModel)]="appearanceSettings.reducedMotion" class="sr-only peer">
+            <div
+              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          type="button"
+          (click)="saveAppearanceSettings()"
+          class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors"
+        >
+          Save Appearance Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Language Settings -->
+    <div *ngIf="activeTab === 'language'" class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Language & Region</h2>
+
+      <div class="space-y-6">
+        <div>
+          <h3 class="font-medium text-gray-800 mb-2">Language</h3>
+          <p class="text-sm text-gray-500 mb-3">Select your preferred language</p>
+
+          <select
+            [(ngModel)]="languageSettings.language"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="english">English</option>
+            <option value="spanish">Spanish</option>
+            <option value="french">French</option>
+            <option value="german">German</option>
+            <option value="chinese">Chinese</option>
+            <option value="japanese">Japanese</option>
+          </select>
+        </div>
+
+        <div>
+          <h3 class="font-medium text-gray-800 mb-2">Time Format</h3>
+          <p class="text-sm text-gray-500 mb-3">Choose your preferred time format</p>
+
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="12h"
+                name="timeFormat"
+                value="12h"
+                [(ngModel)]="languageSettings.timeFormat"
+                value="12h"
+                [(ngModel)]="languageSettings.timeFormat"
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+              >
+              <label for="12h" class="ml-2 block text-sm text-gray-700">12-hour (1:30 PM)</label>
+            </div>
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="24h"
+                name="timeFormat"
+                value="24h"
+                [(ngModel)]="languageSettings.timeFormat"
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+              >
+              <label for="24h" class="ml-2 block text-sm text-gray-700">24-hour (13:30)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          type="button"
+          (click)="saveLanguageSettings()"
+          class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 transition-colors"
+        >
+          Save Language Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Sessions Management -->
+    <div *ngIf="activeTab === 'sessions'" class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Active Sessions</h2>
+      <p class="text-gray-600 mb-6">These are the devices that are currently logged into your account. If you don't
+        recognize a session, you should log it out and change your password.</p>
+
+      <div class="space-y-4">
+        <div *ngFor="let session of activeSessions; let i = index" class="border border-gray-200 rounded-lg p-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-medium text-gray-800">{{ session.device }}</h3>
+              <p class="text-sm text-gray-500">{{ session.location }}</p>
+              <div class="flex items-center mt-1">
+                <span class="text-xs text-gray-500">Last active: {{ session.lastActive }}</span>
+                <span *ngIf="session.current"
+                      class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                  Current
+                </span>
+              </div>
+            </div>
+            <button
+              *ngIf="!session.current"
+              (click)="logoutSession(i)"
+              class="text-red-600 hover:text-red-800 text-sm font-medium"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          type="button"
+          (click)="logoutAllSessions()"
+          class="bg-red-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-red-700 transition-colors"
+        >
+          Log out all other sessions
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

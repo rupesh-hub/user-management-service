@@ -1,0 +1,22 @@
+/* Optional custom styles */
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
+/* Smooth hover transitions */
+a {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom shadow for the sidebar */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure the sidebar has a minimum height on larger screens */
+@media (min-width: 768px) {
+  .w-64 {
+    min-height: calc(100vh - 2rem);
+  }
+}
+

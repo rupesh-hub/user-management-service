@@ -1,0 +1,41 @@
+<div class="bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all hover:shadow-md">
+  <div class="p-5">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ metric.title }}</p>
+        <div class="flex items-baseline mt-1">
+          <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+            {{ metric.value | number:'1.0-1' }}{{ metric.suffix }}
+          </p>
+          <p class="ml-2 flex items-baseline text-sm">
+            <span
+              [class]="metric.trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+              <svg
+                *ngIf="metric.trend === 'up'"
+                class="self-center flex-shrink-0 h-4 w-4 text-green-500 dark:text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              <svg
+                *ngIf="metric.trend === 'down'"
+                class="self-center flex-shrink-0 h-4 w-4 text-red-500 dark:text-red-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              <span class="ml-1">{{ metric.change }}%</span>
+            </span>
+            <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs italic">( This month )</span>
+          </p>
+        </div>
+      </div>
+      <div class="h-10 w-10 rounded-full flex justify-center items-center bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300">
+        <fa-icon [icon]="faUsers"/>
+      </div>
+    </div>
+  </div>
+</div>
+

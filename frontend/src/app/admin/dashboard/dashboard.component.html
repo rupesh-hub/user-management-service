@@ -1,1 +1,51 @@
-<p>dashboard works!</p>
+<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+  <!-- Main Content Area -->
+  <main class="flex-1 overflow-y-auto">
+    <!-- Metrics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <ums-metric-card
+        *ngFor="let metric of metrics"
+        [metric]="metric">
+      </ums-metric-card>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      <!-- User Growth Chart -->
+      <ums-chart-container
+        class="lg:col-span-2"
+        title="User Growth"
+        chartId="userGrowthChart"
+        chartType="line"
+        [chartData]="chartData.userGrowth">
+      </ums-chart-container>
+
+      <!-- User Status Chart -->
+      <ums-chart-container
+        title="User Status"
+        chartId="userStatusChart"
+        chartType="doughnut"
+        [chartData]="chartData.userStatus">
+      </ums-chart-container>
+    </div>
+
+    <!-- User Activity Chart -->
+    <ums-chart-container
+      class="mb-6"
+      title="User Activity (Last Week)"
+      chartId="userActivityChart"
+      chartType="bar"
+      [chartData]="chartData.userActivity">
+    </ums-chart-container>
+
+    <!-- User Table -->
+    <ums-user-table
+      [users]="users"
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      [itemsPerPage]="itemsPerPage"
+      [totalItems]="totalItems"
+      (pageChange)="onPageChange($event)">
+    </ums-user-table>
+  </main>
+</div>

@@ -1,0 +1,1265 @@
+<div class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Notification & Communication Settings</h1>
+
+    <!-- Tab Navigation -->
+    <div class="flex flex-wrap mb-6 bg-white rounded shadow overflow-hidden">
+      <button
+        *ngFor="let tab of ['channels', 'categories', 'templates', 'schedules']"
+        (click)="setActiveTab(tab)"
+        class="px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap"
+        [ngClass]="activeTab === tab ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100'"
+      >
+        {{ tab | titlecase }}
+      </button>
+    </div>
+
+    <!-- Notification Channels Tab -->
+    <div *ngIf="activeTab === 'channels'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Channels List -->
+      <div class="bg-white rounded shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-800">Notification Channels</h2>
+        </div>
+
+        <div class="divide-y divide-gray-200 max-h-[calc(100vh-250px)] overflow-y-auto">
+          <div
+            *ngFor="let channel of notificationChannels"
+            (click)="selectChannel(channel)"
+            class="px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            [ngClass]="{'bg-indigo-50': selectedChannel?.id === channel.id}"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-sm font-medium text-gray-900">{{ channel.name }}</h3>
+                <p class="text-xs text-gray-500 mt-1">{{ channel.description }}</p>
+                <div class="flex items-center mt-2">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="channel.isEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+                    {{ channel.isEnabled ? 'Enabled' : 'Disabled' }}
+                  </span>
+                  <span *ngIf="channel.requiresVerification" class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="channel.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
+                    {{ channel.isVerified ? 'Verified' : 'Unverified' }}
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    [checked]="channel.isEnabled"
+                    (change)="toggleChannelStatus(channel); $event.stopPropagation()"
+                    class="sr-only peer"
+                  >
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="notificationChannels.length === 0" class="px-6 py-10 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No notification channels configured</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel Details -->
+      <div class="lg:col-span-2">
+        <div *ngIf="selectedChannel" class="bg-white rounded shadow">
+          <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-gray-800">Channel Details: {{ selectedChannel.name }}</h2>
+            <button
+              (click)="editChannel()"
+              class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </button>
+          </div>
+
+          <!-- Channel View -->
+          <div *ngIf="!isEditingChannel" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Name</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.name }}</p>
+              </div>
+
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Status</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.isEnabled ? 'Enabled' : 'Disabled' }}</p>
+              </div>
+
+              <div class="md:col-span-2">
+                <h3 class="text-sm font-medium text-gray-500">Description</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.description }}</p>
+              </div>
+
+              <div *ngIf="selectedChannel.requiresVerification">
+                <h3 class="text-sm font-medium text-gray-500">Verification Status</h3>
+                <div class="mt-1 flex items-center">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="selectedChannel.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
+                    {{ selectedChannel.isVerified ? 'Verified' : 'Unverified' }}
+                  </span>
+                  <button
+                    *ngIf="!selectedChannel.isVerified"
+                    (click)="verifyChannel()"
+                    class="ml-2 inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Verify Now
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="selectedChannel.isConfigurable">
+              <h3 class="text-md font-medium text-gray-800 mb-4">Channel Configuration</h3>
+
+              <!-- Email Settings -->
+              <div *ngIf="selectedChannel.name === 'Email'" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">SMTP Server</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.smtpServer }}</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">SMTP Port</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.smtpPort }}</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">SMTP Username</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.smtpUsername }}</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">SMTP Password</h4>
+                    <p class="mt-1 text-sm text-gray-900">********</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">From Email</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.fromEmail }}</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">From Name</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.fromName }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SMS Settings -->
+              <div *ngIf="selectedChannel.name === 'SMS'" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">API Key</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.apiKey }}</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">API Secret</h4>
+                    <p class="mt-1 text-sm text-gray-900">********</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">From Number</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.fromNumber }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Push Notification Settings -->
+              <div *ngIf="selectedChannel.name === 'Push Notifications'" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Firebase Server Key</h4>
+                    <p class="mt-1 text-sm text-gray-900">********</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">APNS Certificate</h4>
+                    <p class="mt-1 text-sm text-gray-900">********</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slack Settings -->
+              <div *ngIf="selectedChannel.name === 'Slack'" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="md:col-span-2">
+                    <h4 class="text-sm font-medium text-gray-500">Webhook URL</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.webhookUrl }}</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Channel</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.channel }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- In-app Notification Settings -->
+              <div *ngIf="selectedChannel.name === 'In-app Notifications'" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Store Duration (days)</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.storeDuration }}</p>
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500">Show Badge</h4>
+                    <p class="mt-1 text-sm text-gray-900">{{ selectedChannel.settings.showBadge ? 'Yes' : 'No' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Channel Edit Form -->
+          <div *ngIf="isEditingChannel" class="p-6">
+            <form [formGroup]="channelForm" (ngSubmit)="saveChannel()">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    formControlName="name"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                  <div *ngIf="channelForm.get('name')?.invalid && channelForm.get('name')?.touched" class="text-red-500 text-xs mt-1">
+                    Name is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="isEnabled" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <div class="mt-2">
+                    <label class="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        id="isEnabled"
+                        formControlName="isEnabled"
+                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      >
+                      <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="md:col-span-2">
+                  <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    id="description"
+                    formControlName="description"
+                    rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  ></textarea>
+                  <div *ngIf="channelForm.get('description')?.invalid && channelForm.get('description')?.touched" class="text-red-500 text-xs mt-1">
+                    Description is required
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="selectedChannel.isConfigurable" formGroupName="settings">
+                <h3 class="text-md font-medium text-gray-800 mb-4">Channel Configuration</h3>
+
+                <!-- Email Settings -->
+                <div *ngIf="selectedChannel.name === 'Email'" class="space-y-4 mb-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label for="smtpServer" class="block text-sm font-medium text-gray-700 mb-1">SMTP Server</label>
+                      <input
+                        type="text"
+                        id="smtpServer"
+                        formControlName="smtpServer"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="smtpPort" class="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
+                      <input
+                        type="text"
+                        id="smtpPort"
+                        formControlName="smtpPort"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="smtpUsername" class="block text-sm font-medium text-gray-700 mb-1">SMTP Username</label>
+                      <input
+                        type="text"
+                        id="smtpUsername"
+                        formControlName="smtpUsername"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="smtpPassword" class="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
+                      <input
+                        type="password"
+                        id="smtpPassword"
+                        formControlName="smtpPassword"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="fromEmail" class="block text-sm font-medium text-gray-700 mb-1">From Email</label>
+                      <input
+                        type="email"
+                        id="fromEmail"
+                        formControlName="fromEmail"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="fromName" class="block text-sm font-medium text-gray-700 mb-1">From Name</label>
+                      <input
+                        type="text"
+                        id="fromName"
+                        formControlName="fromName"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SMS Settings -->
+                <div *ngIf="selectedChannel.name === 'SMS'" class="space-y-4 mb-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                      <input
+                        type="text"
+                        id="apiKey"
+                        formControlName="apiKey"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="apiSecret" class="block text-sm font-medium text-gray-700 mb-1">API Secret</label>
+                      <input
+                        type="password"
+                        id="apiSecret"
+                        formControlName="apiSecret"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="fromNumber" class="block text-sm font-medium text-gray-700 mb-1">From Number</label>
+                      <input
+                        type="text"
+                        id="fromNumber"
+                        formControlName="fromNumber"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Push Notification Settings -->
+                <div *ngIf="selectedChannel.name === 'Push Notifications'" class="space-y-4 mb-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label for="firebaseServerKey" class="block text-sm font-medium text-gray-700 mb-1">Firebase Server Key</label>
+                      <input
+                        type="password"
+                        id="firebaseServerKey"
+                        formControlName="firebaseServerKey"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="apnsCertificate" class="block text-sm font-medium text-gray-700 mb-1">APNS Certificate</label>
+                      <input
+                        type="password"
+                        id="apnsCertificate"
+                        formControlName="apnsCertificate"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Slack Settings -->
+                <div *ngIf="selectedChannel.name === 'Slack'" class="space-y-4 mb-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                      <label for="webhookUrl" class="block text-sm font-medium text-gray-700 mb-1">Webhook URL</label>
+                      <input
+                        type="text"
+                        id="webhookUrl"
+                        formControlName="webhookUrl"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="channel" class="block text-sm font-medium text-gray-700 mb-1">Channel</label>
+                      <input
+                        type="text"
+                        id="channel"
+                        formControlName="channel"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- In-app Notification Settings -->
+                <div *ngIf="selectedChannel.name === 'In-app Notifications'" class="space-y-4 mb-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label for="storeDuration" class="block text-sm font-medium text-gray-700 mb-1">Store Duration (days)</label>
+                      <input
+                        type="number"
+                        id="storeDuration"
+                        formControlName="storeDuration"
+                        min="1"
+                        max="90"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                    </div>
+
+                    <div>
+                      <label for="showBadge" class="block text-sm font-medium text-gray-700 mb-1">Show Badge</label>
+                      <div class="mt-2">
+                        <label class="inline-flex items-center">
+                          <input
+                            type="checkbox"
+                            id="showBadge"
+                            formControlName="showBadge"
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          >
+                          <span class="ml-2 text-sm text-gray-700">Show notification badge</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  (click)="cancelChannelEdit()"
+                  class="px-4 py-2 border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="channelForm.invalid"
+                  class="px-4 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- No Channel Selected State -->
+        <div *ngIf="!selectedChannel" class="bg-white rounded shadow p-6 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No channel selected</h3>
+          <p class="mt-1 text-sm text-gray-500">Select a channel from the list to view and edit its details.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Categories Tab -->
+    <div *ngIf="activeTab === 'categories'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Categories List -->
+      <div class="bg-white rounded shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-lg font-medium text-gray-800">Notification Categories</h2>
+          <button
+            (click)="createCategory()"
+            class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Category
+          </button>
+        </div>
+
+        <div class="divide-y divide-gray-200 max-h-[calc(100vh-250px)] overflow-y-auto">
+          <div
+            *ngFor="let category of notificationCategories"
+            (click)="selectCategory(category)"
+            class="px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            [ngClass]="{'bg-indigo-50': selectedCategory?.id === category.id}"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-sm font-medium text-gray-900">{{ category.name }}</h3>
+                <p class="text-xs text-gray-500 mt-1">{{ category.description }}</p>
+              </div>
+              <button
+                (click)="deleteCategory(category); $event.stopPropagation()"
+                class="text-gray-400 hover:text-red-600 focus:outline-none"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="notificationCategories.length === 0" class="px-6 py-10 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24"  class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No notification categories configured</p>
+            <button
+              (click)="createCategory()"
+              class="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Create your first category
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Details -->
+      <div class="lg:col-span-2">
+        <!-- Create/Edit Category Form -->
+        <div *ngIf="isEditingCategory" class="bg-white rounded shadow mb-6">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-800">{{ selectedCategory ? 'Edit Category' : 'Create New Category' }}</h2>
+          </div>
+
+          <div class="p-6">
+            <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+              <div class="space-y-4">
+                <div>
+                  <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+                  <input
+                    type="text"
+                    id="categoryName"
+                    formControlName="name"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="e.g., Account, Security, Billing"
+                  >
+                  <div *ngIf="categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched" class="text-red-500 text-xs mt-1">
+                    Category name is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="categoryDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    id="categoryDescription"
+                    formControlName="description"
+                    rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Describe the purpose of this notification category"
+                  ></textarea>
+                  <div *ngIf="categoryForm.get('description')?.invalid && categoryForm.get('description')?.touched" class="text-red-500 text-xs mt-1">
+                    Description is required
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  (click)="cancelCategoryEdit()"
+                  class="px-4 py-2 border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="categoryForm.invalid"
+                  class="px-4 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {{ selectedCategory ? 'Save Changes' : 'Create Category' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Category Details -->
+        <div *ngIf="selectedCategory && !isEditingCategory" class="bg-white rounded shadow">
+          <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-gray-800">Category Details: {{ selectedCategory.name }}</h2>
+            <button
+              (click)="editCategory()"
+              class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </button>
+          </div>
+
+          <div class="p-6">
+            <div class="mb-6">
+              <h3 class="text-sm font-medium text-gray-500">Description</h3>
+              <p class="mt-1 text-sm text-gray-900">{{ selectedCategory.description }}</p>
+            </div>
+
+            <h3 class="text-md font-medium text-gray-800 mb-4">Notification Channels</h3>
+
+            <div class="space-y-4">
+              <div *ngFor="let channelConfig of selectedCategory.channels" class="border border-gray-200 rounded p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                      <svg *ngIf="getChannelById(channelConfig.channelId)?.name === 'Email'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <svg *ngIf="getChannelById(channelConfig.channelId)?.name === 'SMS'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                      </svg>
+                      <svg *ngIf="getChannelById(channelConfig.channelId)?.name === 'Push Notifications'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      <svg *ngIf="getChannelById(channelConfig.channelId)?.name === 'Slack'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                      </svg>
+                      <svg *ngIf="getChannelById(channelConfig.channelId)?.name === 'In-app Notifications'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <h4 class="text-sm font-medium text-gray-900">{{ getChannelById(channelConfig.channelId)?.name }}</h4>
+                      <p class="text-xs text-gray-500">{{ getChannelById(channelConfig.channelId)?.description }}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        [checked]="channelConfig.isEnabled"
+                        (change)="toggleCategoryChannel(selectedCategory.id, channelConfig.channelId, !channelConfig.isEnabled)"
+                        class="sr-only peer"
+                      >
+                      <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Category Selected State -->
+        <div *ngIf="!selectedCategory && !isEditingCategory" class="bg-white rounded shadow p-6 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No category selected</h3>
+          <p class="mt-1 text-sm text-gray-500">Select a category from the list to view and edit its details, or create a new one.</p>
+          <div class="mt-6">
+            <button
+              (click)="createCategory()"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create New Category
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Templates Tab -->
+    <div *ngIf="activeTab === 'templates'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Templates List -->
+      <div class="bg-white rounded shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-lg font-medium text-gray-800">Notification Templates</h2>
+          <button
+            (click)="createTemplate()"
+            class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Template
+          </button>
+        </div>
+
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex flex-col space-y-4">
+            <div class="flex-grow">
+              <label for="templateSearch" class="sr-only">Search templates</label>
+              <div class="relative rounded shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="templateSearch"
+                  [(ngModel)]="templateSearchTerm"
+                  (input)="applyTemplateFilters()"
+                  class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded"
+                  placeholder="Search templates"
+                >
+              </div>
+            </div>
+
+            <div>
+              <label for="templateCategoryFilter" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select
+                id="templateCategoryFilter"
+                [(ngModel)]="templateCategoryFilter"
+                (change)="applyTemplateFilters()"
+                class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded"
+              >
+                <option value="all">All Categories</option>
+                <option *ngFor="let category of notificationCategories" [value]="category.name">{{ category.name }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="divide-y divide-gray-200 max-h-[calc(100vh-350px)] overflow-y-auto">
+          <div
+            *ngFor="let template of filteredTemplates"
+            (click)="selectTemplate(template)"
+            class="px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            [ngClass]="{'bg-indigo-50': selectedTemplate?.id === template.id}"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-sm font-medium text-gray-900">{{ template.name }}</h3>
+                <p class="text-xs text-gray-500 mt-1">{{ template.description }}</p>
+                <div class="flex items-center mt-2">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    {{ template.category }}
+                  </span>
+                  <span class="ml-2 text-xs text-gray-500">Updated: {{ formatDate(template.lastUpdated) }}</span>
+                </div>
+              </div>
+              <button
+                (click)="deleteTemplate(template); $event.stopPropagation()"
+                class="text-gray-400 hover:text-red-600 focus:outline-none"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="filteredTemplates.length === 0" class="px-6 py-10 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No templates found</p>
+            <p class="mt-1 text-sm text-gray-500">Try adjusting your filters or create a new template</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template Details -->
+      <div class="lg:col-span-2">
+        <!-- Create/Edit Template Form -->
+        <div *ngIf="isEditingTemplate" class="bg-white rounded shadow mb-6">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-800">{{ selectedTemplate ? 'Edit Template' : 'Create New Template' }}</h2>
+          </div>
+
+          <div class="p-6">
+            <form [formGroup]="templateForm" (ngSubmit)="saveTemplate()">
+              <div class="space-y-4">
+                <div>
+                  <label for="templateName" class="block text-sm font-medium text-gray-700 mb-1">Template Name</label>
+                  <input
+                    type="text"
+                    id="templateName"
+                    formControlName="name"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="e.g., Welcome Email, Password Reset"
+                  >
+                  <div *ngIf="templateForm.get('name')?.invalid && templateForm.get('name')?.touched" class="text-red-500 text-xs mt-1">
+                    Template name is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="templateDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    id="templateDescription"
+                    formControlName="description"
+                    rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Describe when this template is used"
+                  ></textarea>
+                  <div *ngIf="templateForm.get('description')?.invalid && templateForm.get('description')?.touched" class="text-red-500 text-xs mt-1">
+                    Description is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="templateCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    id="templateCategory"
+                    formControlName="category"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Select a category</option>
+                    <option *ngFor="let category of notificationCategories" [value]="category.name">{{ category.name }}</option>
+                  </select>
+                  <div *ngIf="templateForm.get('category')?.invalid && templateForm.get('category')?.touched" class="text-red-500 text-xs mt-1">
+                    Category is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="templateSubject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                  <input
+                    type="text"
+                    id="templateSubject"
+                    formControlName="subject"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                  <div *ngIf="templateForm.get('subject')?.invalid && templateForm.get('subject')?.touched" class="text-red-500 text-xs mt-1">
+                    Subject is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="templateBody" class="block text-sm font-medium text-gray-700 mb-1">Body</label>
+                  <textarea
+                    id="templateBody"
+                    formControlName="body"
+                    rows="8"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                  ></textarea>
+                  <div *ngIf="templateForm.get('body')?.invalid && templateForm.get('body')?.touched" class="text-red-500 text-xs mt-1">
+                    Body is required
+                  </div>
+                </div>
+
+                <div>
+                  <p class="text-sm text-gray-500">
+                    Use variables in double curly braces, e.g., {{'{{'}}variableName{{'}}'}}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  (click)="cancelTemplateEdit()"
+                  class="px-4 py-2 border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="templateForm.invalid"
+                  class="px-4 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {{ selectedTemplate ? 'Save Changes' : 'Create Template' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Template Details -->
+        <div *ngIf="selectedTemplate && !isEditingTemplate" class="bg-white rounded shadow">
+          <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-gray-800">Template Details: {{ selectedTemplate.name }}</h2>
+            <button
+              (click)="editTemplate()"
+              class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </button>
+          </div>
+
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Category</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedTemplate.category }}</p>
+              </div>
+
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Last Updated</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ formatDate(selectedTemplate.lastUpdated) }}</p>
+              </div>
+
+              <div class="md:col-span-2">
+                <h3 class="text-sm font-medium text-gray-500">Description</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedTemplate.description }}</p>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-md font-medium text-gray-800 mb-2">Subject</h3>
+                <div class="bg-gray-50 rounded p-4 font-mono text-sm">
+                  {{ selectedTemplate.subject }}
+                </div>
+              </div>
+
+              <div>
+                <h3 class="text-md font-medium text-gray-800 mb-2">Body</h3>
+                <div class="bg-gray-50 rounded p-4 font-mono text-sm whitespace-pre-wrap">
+                  {{ selectedTemplate.body }}
+                </div>
+              </div>
+
+              <div>
+                <h3 class="text-md font-medium text-gray-800 mb-2">Variables</h3>
+                <div class="flex flex-wrap gap-2">
+                  <span *ngFor="let variable of selectedTemplate.variables" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    {{ variable }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Template Selected State -->
+        <div *ngIf="!selectedTemplate && !isEditingTemplate" class="bg-white rounded shadow p-6 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No template selected</h3>
+          <p class="mt-1 text-sm text-gray-500">Select a template from the list to view and edit its details, or create a new one.</p>
+          <div class="mt-6">
+            <button
+              (click)="createTemplate()"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create New Template
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Schedules Tab -->
+    <div *ngIf="activeTab === 'schedules'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Schedules List -->
+      <div class="bg-white rounded shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-lg font-medium text-gray-800">Delivery Schedules</h2>
+          <button
+            (click)="createSchedule()"
+            class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Schedule
+          </button>
+        </div>
+
+        <div class="divide-y divide-gray-200 max-h-[calc(100vh-250px)] overflow-y-auto">
+          <div
+            *ngFor="let schedule of deliverySchedules"
+            (click)="selectSchedule(schedule)"
+            class="px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            [ngClass]="{'bg-indigo-50': selectedSchedule?.id === schedule.id}"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-sm font-medium text-gray-900">{{ schedule.name }}</h3>
+                <p class="text-xs text-gray-500 mt-1">{{ schedule.description }}</p>
+                <div class="flex items-center mt-2">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="schedule.isEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+                    {{ schedule.isEnabled ? 'Enabled' : 'Disabled' }}
+                  </span>
+                  <span class="ml-2 text-xs text-gray-500">{{ schedule.frequency | titlecase }}</span>
+                </div>
+              </div>
+              <div class="flex items-center">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    [checked]="schedule.isEnabled"
+                    (change)="toggleScheduleStatus(schedule); $event.stopPropagation()"
+                    class="sr-only peer"
+                  >
+                  <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+                <button
+                  (click)="deleteSchedule(schedule); $event.stopPropagation()"
+                  class="ml-2 text-gray-400 hover:text-red-600 focus:outline-none"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="deliverySchedules.length === 0" class="px-6 py-10 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No delivery schedules configured</p>
+            <button
+              (click)="createSchedule()"
+              class="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Create your first schedule
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule Details -->
+      <div class="lg:col-span-2">
+        <!-- Create/Edit Schedule Form -->
+        <div *ngIf="isEditingSchedule" class="bg-white rounded shadow mb-6">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-800">{{ selectedSchedule ? 'Edit Schedule' : 'Create New Schedule' }}</h2>
+          </div>
+
+          <div class="p-6">
+            <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()">
+              <div class="space-y-4">
+                <div>
+                  <label for="scheduleName" class="block text-sm font-medium text-gray-700 mb-1">Schedule Name</label>
+                  <input
+                    type="text"
+                    id="scheduleName"
+                    formControlName="name"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="e.g., Daily Digest, Weekly Summary"
+                  >
+                  <div *ngIf="scheduleForm.get('name')?.invalid && scheduleForm.get('name')?.touched" class="text-red-500 text-xs mt-1">
+                    Schedule name is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="scheduleDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    id="scheduleDescription"
+                    formControlName="description"
+                    rows="2"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Describe the purpose of this delivery schedule"
+                  ></textarea>
+                  <div *ngIf="scheduleForm.get('description')?.invalid && scheduleForm.get('description')?.touched" class="text-red-500 text-xs mt-1">
+                    Description is required
+                  </div>
+                </div>
+
+                <div>
+                  <label for="isEnabled" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <div class="mt-2">
+                    <label class="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        id="isEnabled"
+                        formControlName="isEnabled"
+                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      >
+                      <span class="ml-2 text-sm text-gray-700">Enabled</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="frequency" class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                  <select
+                    id="frequency"
+                    formControlName="frequency"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="immediate">Immediate</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+
+                <div *ngIf="scheduleForm.get('frequency')?.value !== 'immediate'">
+                  <label for="timeOfDay" class="block text-sm font-medium text-gray-700 mb-1">Time of Day</label>
+                  <input
+                    type="time"
+                    id="timeOfDay"
+                    formControlName="timeOfDay"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                </div>
+
+                <div *ngIf="scheduleForm.get('frequency')?.value === 'weekly'">
+                  <label for="dayOfWeek" class="block text-sm font-medium text-gray-700 mb-1">Day of Week</label>
+                  <select
+                    id="dayOfWeek"
+                    formControlName="dayOfWeek"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="0">Sunday</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                  </select>
+                </div>
+
+                <div *ngIf="scheduleForm.get('frequency')?.value === 'monthly'">
+                  <label for="dayOfMonth" class="block text-sm font-medium text-gray-700 mb-1">Day of Month</label>
+                  <select
+                    id="dayOfMonth"
+                    formControlName="dayOfMonth"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option *ngFor="let day of [].constructor(31); let i = index" [value]="i + 1">{{ i + 1 }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  (click)="cancelScheduleEdit()"
+                  class="px-4 py-2 border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  [disabled]="scheduleForm.invalid"
+                  class="px-4 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {{ selectedSchedule ? 'Save Changes' : 'Create Schedule' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Schedule Details -->
+        <div *ngIf="selectedSchedule && !isEditingSchedule" class="bg-white rounded shadow">
+          <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-gray-800">Schedule Details: {{ selectedSchedule.name }}</h2>
+            <button
+              (click)="editSchedule()"
+              class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </button>
+          </div>
+
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Status</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedSchedule.isEnabled ? 'Enabled' : 'Disabled' }}</p>
+              </div>
+
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Frequency</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedSchedule.frequency | titlecase }}</p>
+              </div>
+
+              <div class="md:col-span-2">
+                <h3 class="text-sm font-medium text-gray-500">Description</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedSchedule.description }}</p>
+              </div>
+
+              <div *ngIf="selectedSchedule.frequency !== 'immediate'">
+                <h3 class="text-sm font-medium text-gray-500">Time of Day</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedSchedule.timeOfDay }}</p>
+              </div>
+
+              <div *ngIf="selectedSchedule.frequency === 'weekly'">
+                <h3 class="text-sm font-medium text-gray-500">Day of Week</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ getDayOfWeekName(selectedSchedule.dayOfWeek || '0') }}</p>
+              </div>
+
+              <div *ngIf="selectedSchedule.frequency === 'monthly'">
+                <h3 class="text-sm font-medium text-gray-500">Day of Month</h3>
+                <p class="mt-1 text-sm text-gray-900">{{ selectedSchedule.dayOfMonth }}</p>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 rounded p-4 mb-4">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Schedule Summary</h3>
+              <p class="text-sm text-gray-900">
+                <span *ngIf="selectedSchedule.frequency === 'immediate'">
+                  Notifications will be sent immediately when triggered.
+                </span>
+                <span *ngIf="selectedSchedule.frequency === 'daily'">
+                  Notifications will be combined and sent daily at {{ selectedSchedule.timeOfDay }}.
+                </span>
+                <span *ngIf="selectedSchedule.frequency === 'weekly'">
+                  Notifications will be combined and sent weekly on {{ getDayOfWeekName(selectedSchedule.dayOfWeek || '0') }} at {{ selectedSchedule.timeOfDay }}.
+                </span>
+                <span *ngIf="selectedSchedule.frequency === 'monthly'">
+                  Notifications will be combined and sent monthly on day {{ selectedSchedule.dayOfMonth }} at {{ selectedSchedule.timeOfDay }}.
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Schedule Selected State -->
+        <div *ngIf="!selectedSchedule && !isEditingSchedule" class="bg-white rounded shadow p-6 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No schedule selected</h3>
+          <p class="mt-1 text-sm text-gray-500">Select a schedule from the list to view and edit its details, or create a new one.</p>
+          <div class="mt-6">
+            <button
+              (click)="createSchedule()"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create New Schedule
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
