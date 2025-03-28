@@ -168,6 +168,11 @@ jobs:
 
       - name: Commit and push changes
         run: |
+          # Fetch remote changes to prevent conflicts
+          git pull origin main --rebase
+
           git add deployment/backend-deployment.yaml
           git commit -m "Update kubernetes deployment with new image tag: ${{ needs.docker.outputs.image_tag }} [skip ci]" || echo "No changes to commit"
-          git push
+
+          # Push the changes
+          git push origin main
