@@ -30,28 +30,28 @@ services:
     networks:
       - java-project
 
-#  backend:
-#    container_name: backend
-#    image: rupesh1997/user-management-service:1.0.0
-#    ports:
-#      - "8181:8181"
-#    networks:
-#      - java-project
-#    restart: always
-#    depends_on:
-#      - mysql
-#      - maildev
-#
-#  frontend:
-#    container_name: frontend
-#    image: rupesh1997/user-management-service-frontend:1.0.0
-#    ports:
-#      - "8080:80"
-#    networks:
-#      - java-project
-#    restart: always
-#    depends_on:
-#      - backend
+  backend:
+    container_name: backend
+    image: rupesh1997/user-management-service-backend:1.0.0
+    ports:
+      - "8181:8181"
+    networks:
+      - java-project
+    restart: always
+    depends_on:
+      - mysql
+      - maildev
+
+  frontend:
+    container_name: frontend
+    image: rupesh1997/user-management-service-frontend:1.0.0
+    ports:
+      - "8080:80"
+    networks:
+      - java-project
+    restart: always
+    depends_on:
+      - backend
 
 volumes:
   mysql-data:

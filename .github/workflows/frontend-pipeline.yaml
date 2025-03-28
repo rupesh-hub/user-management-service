@@ -9,6 +9,7 @@ on:
       - 'docker/backend'
       - '.github/workflows/backend*'
       - 'README.md'
+      - 'backend'
 
 jobs:
   test:
