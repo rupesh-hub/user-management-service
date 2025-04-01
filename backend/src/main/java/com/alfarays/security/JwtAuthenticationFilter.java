@@ -35,6 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public static final List<String> PUBLIC_PATHS = List.of(
             AUTH_PATH,
             ROLES_PATH,
+            "/roles/**",
             IMAGE_PATH,
             UPLOADS_PATH
     );

@@ -14,10 +14,6 @@ export class UserService {
   constructor(private _http: HttpClient) {
   }
 
-  public getUsers = () => {
-    return this._http.get<any[]>(`${this.BASE_URI}`);
-  }
-
   public userByUsername = (username: string): Observable<User | any> => {
     return this._http.get<any>(`${this.BASE_URI}/by.username/${username}`)
       .pipe(

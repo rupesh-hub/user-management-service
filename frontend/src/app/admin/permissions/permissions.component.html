@@ -185,13 +185,13 @@
                 </div>
 
                 <div>
-                  <dt class="text-sm font-medium text-gray-500">Created</dt>
-                  <dd class="mt-1 text-sm text-gray-900">{{ selectedRole.createdAt | date:'MMM d, y' }}</dd>
+                  <dt class="text-sm font-medium text-gray-500">Created On</dt>
+                  <dd class="mt-1 text-sm text-gray-900">{{ selectedRole.createdOn | date:'MMM d, y' }}</dd>
                 </div>
 
                 <div>
-                  <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
-                  <dd class="mt-1 text-sm text-gray-900">{{ selectedRole.updatedAt | date:'MMM d, y' }}</dd>
+                  <dt class="text-sm font-medium text-gray-500">Last Modified On</dt>
+                  <dd class="mt-1 text-sm text-gray-900">{{ selectedRole.modifiedOn | date:'MMM d, y' }}</dd>
                 </div>
 
                 <div class="sm:col-span-2">
@@ -228,44 +228,63 @@
 
             <div class="p-6">
               <div class="space-y-6">
-                <div *ngFor="let category of permissionCategories" class="border border-gray-200 rounded overflow-hidden">
-                  <div class="bg-gray-50 px-4 py-3 flex items-center justify-between">
-                    <div class="flex items-center">
-                      <input
-                        type="checkbox"
-                        [id]="'category-' + category.name"
-                        [checked]="isCategoryFullySelected(category.name)"
-                        [indeterminate]="isCategoryPartiallySelected(category.name)"
-                        (change)="toggleCategoryPermissions(category.name, !isCategoryFullySelected(category.name))"
-                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                      >
-                      <label [for]="'category-' + category.name" class="ml-2 block text-sm font-medium text-gray-700">
-                        {{ category.name }}
-                      </label>
-                    </div>
-                    <span class="text-xs text-gray-500">
-                      {{ getCategoryPermissionCount(category.name).selected }}/{{ getCategoryPermissionCount(category.name).total }} selected
-                    </span>
-                  </div>
-
-                  <div class="divide-y divide-gray-200">
-                    <div *ngFor="let permission of category.permissions" class="px-4 py-3 flex items-center justify-between">
+                <div class="divide-y divide-gray-200 ml-4 border-l">
+                  <div *ngFor="let category of permissionCategories" class="px-4 py-3">
+                    <!-- Category header with toggle -->
+                    <div class="flex items-center justify-between cursor-pointer" (click)="toggleCategory(category.categoryName)">
                       <div class="flex items-center">
                         <input
                           type="checkbox"
-                          [id]="permission.id"
-                          [checked]="selectedPermissions[permission.id]"
-                          (change)="togglePermission(permission.id)"
+                          [id]="'category-' + category.categoryName"
+                          [checked]="isCategoryFullySelected(category.categoryName)"
+                          [indeterminate]="isCategoryPartiallySelected(category.categoryName)"
+                          (click)="$event.stopPropagation(); toggleCategoryPermissions(category.categoryName, !isCategoryFullySelected(category.categoryName))"
                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                         >
-                        <label [for]="permission.id" class="ml-2 block text-sm font-medium text-gray-700">
-                          {{ permission.name }}
+                        <label [for]="'category-' + category.categoryName" class="ml-2 block text-sm font-medium text-gray-700">
+                          {{ category.categoryName }}
                         </label>
                       </div>
-                      <span class="text-xs text-gray-500">{{ permission.description }}</span>
+                      <div class="flex items-center">
+        <span class="text-xs text-gray-500 mr-2">
+          {{ getCategoryPermissionCount(category.categoryName).selected }}/{{ getCategoryPermissionCount(category.categoryName).total }} selected
+        </span>
+                        <svg
+                          [class.rotate-90]="isCategoryExpanded(category.categoryName)"
+                          class="h-4 w-4 text-gray-500 transition-transform duration-200"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+
+                    <!-- Permissions list (collapsible) -->
+                    <div
+                      *ngIf="isCategoryExpanded(category.categoryName)"
+                      class="mt-2 ml-6 pl-4 border-l border-gray-200 divide-y divide-gray-200"
+                    >
+                      <div *ngFor="let permission of category.permissions" class="py-2 flex items-center justify-between">
+                        <div class="flex items-center">
+                          <input
+                            type="checkbox"
+                            [id]="permission.id"
+                            [checked]="selectedPermissions[permission.id]"
+                            (change)="togglePermission(permission.id)"
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          >
+                          <label [for]="permission.id" class="ml-2 block text-sm text-gray-700">
+                            {{ permission.name }}
+                          </label>
+                        </div>
+                        <span class="text-xs text-gray-500">{{ permission.description }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
+
               </div>
 
               <div class="mt-6 flex justify-end">
@@ -282,23 +301,28 @@
 
         <!-- No Role Selected State -->
         <div *ngIf="!selectedRole && !isCreatingRole" class="bg-white rounded shadow p-6 text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
           </svg>
           <h3 class="mt-2 text-sm font-medium text-gray-900">No role selected</h3>
-          <p class="mt-1 text-sm text-gray-500">Select a role from the list to view and edit its details and permissions.</p>
+          <p class="mt-1 text-sm text-gray-500">Select a role from the list to view and edit its details and
+            permissions.</p>
           <div class="mt-6">
             <button
               (click)="createRole()"
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
               </svg>
               Create New Role
             </button>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -312,7 +336,7 @@
       <div class="p-6">
         <div class="space-y-8">
           <div *ngFor="let category of permissionCategories" class="space-y-4">
-            <h3 class="text-md font-medium text-gray-800">{{ category.name }}</h3>
+            <h3 class="text-md font-medium text-gray-800">{{ category.categoryName }}</h3>
 
             <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded">
               <table class="min-w-full divide-y divide-gray-300">

@@ -8,6 +8,7 @@ import com.alfarays.mail.service.IMailService;
 import com.alfarays.mail.model.MailRequest;
 import com.alfarays.mail.enums.MailTemplate;
 import com.alfarays.role.entity.Role;
+import com.alfarays.role.model.RoleResponse;
 import com.alfarays.role.repository.RoleRepository;
 import com.alfarays.token.enums.DurationUnit;
 import com.alfarays.token.service.ITokenService;
@@ -15,12 +16,20 @@ import com.alfarays.user.entity.User;
 import com.alfarays.user.mapper.UserMapper;
 import com.alfarays.authentication.model.RegistrationRequest;
 import com.alfarays.user.model.ChangePassword;
+import com.alfarays.user.model.UserFilterDTO;
 import com.alfarays.user.model.UserResponse;
 import com.alfarays.user.repository.UserRepository;
+import com.alfarays.user.repository.UserSpecification;
 import com.alfarays.util.GlobalResponse;
+import com.alfarays.util.Paging;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.alfarays.mail.enums.MailSubject.PASSWORD_RESET_REQUEST;
 import static com.alfarays.token.enums.DurationUnit.MINUTE;
@@ -206,6 +216,31 @@ public class UserService implements IUserService {
         userRepository.save(user);
 
         return GlobalResponse.success("Password reset successfully!");
+    }
+
+    @Override
+    public GlobalResponse<List<UserResponse>> getFilteredUsers(UserFilterDTO filter, Pageable pageable) {
+        Specification<User> spec = UserSpecification.withFilter(filter);
+
+        // Apply sorting from filter if provided
+        Sort sort = Sort.by(filter.getSortDirection(), filter.getSortBy());
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Page<User> userPage = userRepository.findAll(spec, pageable);
+
+        return GlobalResponse.success(
+                userPage.getContent()
+                        .stream()
+                        .map(UserMapper::toResponse).collect(Collectors.toList())
+                ,
+                Paging.builder()
+                        .page(userPage.getNumber())
+                        .size(userPage.getSize())
+                        .totalElements(userPage.getTotalElements())
+                        .totalPages(userPage.getTotalPages())
+                        .first(userPage.isFirst())
+                        .last(userPage.isLast())
+                        .build()
+        );
     }
 
     private Image getProfile(Long userId) {

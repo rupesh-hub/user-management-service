@@ -2,12 +2,18 @@ package com.alfarays.user.resource;
 
 import com.alfarays.authentication.model.RegistrationRequest;
 import com.alfarays.user.model.ChangePassword;
+import com.alfarays.user.model.UserFilterDTO;
 import com.alfarays.user.model.UserResponse;
 import com.alfarays.user.service.IUserService;
 import com.alfarays.util.GlobalResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -90,6 +98,37 @@ public class UserResource {
     ) {
         userService.changePassword(request, authentication);
         return ResponseEntity.ok(GlobalResponse.success());
+    }
+
+    @GetMapping
+    public GlobalResponse<List<UserResponse>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAfter,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdBefore,
+            @RequestParam(defaultValue = "createdOn") String sortBy,
+            @RequestParam(defaultValue = "DESC") Sort.Direction sortDirection
+    ) {
+        UserFilterDTO filter = new UserFilterDTO();
+        filter.setSearchTerm(search);
+        filter.setFirstName(firstName);
+        filter.setLastName(lastName);
+        filter.setEmail(email);
+        filter.setUsername(username);
+        filter.setActive(active);
+        filter.setCreatedAfter(createdAfter);
+        filter.setCreatedBefore(createdBefore);
+        filter.setSortBy(sortBy);
+        filter.setSortDirection(sortDirection);
+
+        Pageable pageable = PageRequest.of(page, size);
+        return userService.getFilteredUsers(filter, pageable);
     }
 
 }

@@ -14,4 +14,5 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     @Query(value = "SELECT * FROM _roles WHERE LOWER(name) = LOWER(:name) LIMIT 1", nativeQuery = true)
     Optional<Role> findByName(@Param("name") String name);
 
+    boolean existsByPermissionsId(Long id);
 }

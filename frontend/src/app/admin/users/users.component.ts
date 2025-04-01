@@ -1,21 +1,32 @@
 import {Component, OnInit} from '@angular/core';
-import {faSearch, faPlus, faChevronDown, faEllipsisVertical, faFilter, faEye} from '@fortawesome/free-solid-svg-icons';
+import {faSearch, faPlus, faChevronDown, faChevronUp, faFilter, faEye} from '@fortawesome/free-solid-svg-icons';
+import {AdminService} from '../admin.service';
+
 
 interface User {
-  id: number,
-  name: string,
-  email: string,
-  username: string,
-  avatar: string,
-  access: {
-    admin: boolean,
-    dataExport: boolean,
-    dataImport: boolean,
-  }
-  lastActive: string,
-  dateAdded: string,
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  avatar: string;
+  roles: string[];
+  lastActive: string;
+  dateAdded: string;
+  initials: string;
+  initialsColor: string;
+  status: string;
 }
 
+interface UserFilter {
+  search?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  username?: string;
+  active?: boolean;
+  createdAfter?: Date;
+  createdBefore?: Date;
+}
 
 @Component({
   selector: 'ums-users',
@@ -24,240 +35,154 @@ interface User {
   styleUrl: './users.component.scss'
 })
 export class UsersComponent implements OnInit {
-  // Font Awesome icons
-  faSearch = faSearch
-  faPlus = faPlus
-  faChevronDown = faChevronDown
-  faEllipsisVertical = faEllipsisVertical
-  faFilter = faFilter
+  // Icons
+  faSearch = faSearch;
+  faPlus = faPlus;
+  faChevronDown = faChevronDown;
+  faChevronUp = faChevronUp;
+  faFilter = faFilter;
   faEye = faEye;
 
-  // Users data
-  users: User[] = []
-  filteredUsers: User[] = []
+  // Data
+  users: User[] = [];
+  selectedUsers: string[] = [];
+  selectAll = false;
 
   // Pagination
-  currentPage = 1
-  itemsPerPage = 8
-  totalPages = 1
+  currentPage = 0;
+  itemsPerPage = 10;
+  totalElements = 0;
+  totalPages = 1;
 
-  // Search and filters
-  searchQuery = ""
-  selectedUsers: number[] = []
-  selectAll = false
+  // Filtering
+  filter: UserFilter = {};
+  showAdvancedFilters = false;
+  searchQuery = "";
 
-  constructor() {
-  }
+  // Sorting
+  sortBy = 'createdOn';
+  sortDirection: 'ASC' | 'DESC' = 'DESC';
+
+  constructor(private _adminService: AdminService) {}
 
   ngOnInit(): void {
-    this.loadUsers()
-    this.applyFilters()
+    this.loadUsers();
   }
 
   loadUsers(): void {
-    // Mock data - in a real app, this would come from an API
-    this.users = [
-      {
-        id: 1,
-        name: "Florence Shaw",
-        email: "florence@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=1",
-        access: {admin: true, dataExport: true, dataImport: true},
-        lastActive: "Mar 4, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 2,
-        name: "Amélie Laurent",
-        email: "amelie@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=5",
-        access: {admin: true, dataExport: true, dataImport: true},
-        lastActive: "Mar 4, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 3,
-        name: "Ammar Foley",
-        email: "ammar@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=8",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 2, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 4,
-        name: "Caitlyn King",
-        email: "caitlyn@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=9",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 6, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 5,
-        name: "Sienna Hewitt",
-        email: "sienna@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=25",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 8, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 6,
-        name: "Olly Shroeder",
-        email: "olly@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=12",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 6, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 7,
-        name: "Mathilde Lewis",
-        email: "mathilde@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=3",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 4, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 8,
-        name: "Jaya Willis",
-        email: "jaya@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=33",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 4, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 9,
-        name: "Marcus Chen",
-        email: "marcus@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=11",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 3, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 10,
-        name: "Elena Rodriguez",
-        email: "elena@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=24",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 1, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 11,
-        name: "David Kim",
-        email: "david@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=15",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 5, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-      {
-        id: 12,
-        name: "Sophia Patel",
-        email: "sophia@untitledui.com",
-        avatar: "https://i.pravatar.cc/150?img=20",
-        access: {admin: false, dataExport: true, dataImport: true},
-        lastActive: "Mar 7, 2024",
-        dateAdded: "July 4, 2022",
-        username: 'Rupesh2053'
-      },
-    ]
-  }
+    const params: any = {
+      page: this.currentPage,
+      size: this.itemsPerPage,
+      sortBy: this.sortBy,
+      sortDirection: this.sortDirection,
+      search: this.searchQuery
+    };
 
-  applyFilters(): void {
-    let filtered = this.users
+    // Add advanced filters if they exist
+    if (this.filter.firstName) params.firstName = this.filter.firstName;
+    if (this.filter.lastName) params.lastName = this.filter.lastName;
+    if (this.filter.email) params.email = this.filter.email;
+    if (this.filter.username) params.username = this.filter.username;
+    if (this.filter.active !== undefined) params.active = this.filter.active;
+    if (this.filter.createdAfter) params.createdAfter = this.filter.createdAfter.toISOString().split('T')[0];
+    if (this.filter.createdBefore) params.createdBefore = this.filter.createdBefore.toISOString().split('T')[0];
 
-    // Apply search filter
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (user) => user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query),
-      )
-    }
-
-    this.filteredUsers = filtered
-    this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage)
+    this._adminService.getUsers(params).subscribe({
+      next: (response) => {
+        this.users = response.users;
+        this.totalElements = response.pagination.totalElements;
+        this.totalPages = response.pagination.totalPages;
+        this.selectAll = false;
+        this.selectedUsers = [];
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+      }
+    });
   }
 
   onSearch(): void {
-    this.currentPage = 1
-    this.applyFilters()
+    this.currentPage = 0;
+    this.loadUsers();
+  }
+
+  onSort(field: string): void {
+    if (this.sortBy === field) {
+      this.sortDirection = this.sortDirection === 'ASC' ? 'DESC' : 'ASC';
+    } else {
+      this.sortBy = field;
+      this.sortDirection = 'DESC';
+    }
+    this.loadUsers();
+  }
+
+  toggleAdvancedFilters(): void {
+    this.showAdvancedFilters = !this.showAdvancedFilters;
+  }
+
+  applyAdvancedFilters(): void {
+    this.currentPage = 0;
+    this.loadUsers();
+  }
+
+  clearFilters(): void {
+    this.filter = {};
+    this.searchQuery = "";
+    this.currentPage = 0;
+    this.loadUsers();
   }
 
   toggleSelectAll(): void {
-    this.selectAll = !this.selectAll
-
+    this.selectAll = !this.selectAll;
     if (this.selectAll) {
-      this.selectedUsers = this.getCurrentPageUsers().map((user) => user.id)
+      this.selectedUsers = this.users.map(user => user.id);
     } else {
-      this.selectedUsers = []
+      this.selectedUsers = [];
     }
   }
 
-  toggleSelectUser(userId: number): void {
-    const index = this.selectedUsers.indexOf(userId)
-    console.log(index)
-
+  toggleSelectUser(userId: string): void {
+    const index = this.selectedUsers.indexOf(userId);
     if (index === -1) {
-      this.selectedUsers.push(userId)
+      this.selectedUsers.push(userId);
     } else {
-      this.selectedUsers.splice(index, 1)
+      this.selectedUsers.splice(index, 1);
     }
-
-    // Update selectAll state
-    const currentPageUserIds = this.getCurrentPageUsers().map((user) => user.id)
-    this.selectAll = currentPageUserIds.every((id) => this.selectedUsers.includes(id))
+    this.selectAll = this.users.every(user => this.selectedUsers.includes(user.id));
   }
 
-  isSelected(userId: number): boolean {
-    return this.selectedUsers.includes(userId)
-  }
-
-  getCurrentPageUsers(): User[] {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage
-    return this.filteredUsers.slice(startIndex, startIndex + this.itemsPerPage)
+  isSelected(userId: string): boolean {
+    return this.selectedUsers.includes(userId);
   }
 
   goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page
-    }
+    this.currentPage = page;
+    this.loadUsers();
   }
 
   getPaginationRange(): number[] {
-    const range = []
-    const maxVisiblePages = 5
+    const range = [];
+    const maxVisiblePages = 5;
+    let start = Math.max(0, this.currentPage - Math.floor(maxVisiblePages / 2));
+    let end = Math.min(this.totalPages - 1, start + maxVisiblePages - 1);
 
-    let start = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2))
-    const end = Math.min(this.totalPages, start + maxVisiblePages - 1)
-
-    // Adjust start if we're near the end
-    if (end === this.totalPages) {
-      start = Math.max(1, end - maxVisiblePages + 1)
+    // Adjust if we're at the end
+    if (end === this.totalPages - 1) {
+      start = Math.max(0, end - maxVisiblePages + 1);
     }
 
     for (let i = start; i <= end; i++) {
-      range.push(i)
+      range.push(i);
     }
 
-    return range
+    return range;
   }
+
+  getSortIcon(field: string): any {
+    if (this.sortBy !== field) return null;
+    return this.sortDirection === 'ASC' ? faChevronUp : faChevronDown;
+  }
+
 
   protected readonly Math = Math;
 }

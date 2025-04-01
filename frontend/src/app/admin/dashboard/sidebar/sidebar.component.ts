@@ -52,7 +52,7 @@ export class SidebarComponent {
     {title: "Dashboard", icon: faBarChart, link: "/admin/dashboard", active: true},
     {title: "Users", icon: faUsers, link: "/admin/users", badge: 4},
     {title: "User Groups", icon: faUserGroup, link: "/admin/user-groups"},
-    {title: "Permissions", icon: faShieldCat, link: "/admin/permissions"},
+    {title: "Roles & Permissions", icon: faShieldCat, link: "/admin/permissions"},
     {title: "Activity Log", icon: faClock, link: "/admin/activity-logs"},
     {title: 'Notifications', icon: faBell, link: "/admin/notifications", badge: 7},
     {title: "Authentication Managements", icon: faUserShield, link: "/admin/authentications"},

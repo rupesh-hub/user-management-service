@@ -31,7 +31,7 @@ public class CustomSecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private static final String[] PUBLIC_URI = {
-            "/authentication/**", "/css/**", "/js/**", "/roles", "/uploads/**", "/uploads","/profile","/profile/**"
+            "/authentication/**", "/css/**", "/js/**", "/roles", "/roles/**", "/uploads/**", "/uploads", "/profile", "/profile/**"
     };
 
     @Bean

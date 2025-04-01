@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -26,8 +28,21 @@ public class Role extends AbstractEntity {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
+    private String description;
+
+    private boolean isSystemRole;
+
     @ManyToMany(mappedBy = "roles")
     @JsonIgnore
     private List<User> users;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "_roles_permissions",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    @Builder.Default
+    private Set<Permission> permissions = new HashSet<>();
 
 }
